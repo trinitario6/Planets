@@ -37,6 +37,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 .nebula { position:absolute; border-radius:50%; filter:blur(40px); pointer-events:none; }
 
 #app { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; height:100dvh; padding:6px 8px 4px; gap:4px; }
+#app.hidden { visibility:hidden; }
 
 /* ── Title ── */
 #title {
@@ -76,7 +77,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 }
 #progress-rocket {
   position:absolute;
-  top:50%; transform:translateY(-50%) rotate(90deg);
+  top:50%; transform:translateY(-50%) rotate(45deg);
   font-size:18px; line-height:1;
   transition:left 0.5s ease;
   pointer-events:none;
@@ -110,6 +111,15 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
   border:1px solid rgba(126,184,255,0.07);
 }
 .cell.gem { border:none; }
+
+/* Hint pulse for suggested move in kid mode */
+.cell.hint svg {
+  animation: hintPulse 0.7s ease infinite alternate;
+}
+@keyframes hintPulse {
+  from { filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5)); }
+  to   { filter: drop-shadow(0 0 14px rgba(255,255,100,0.95)) drop-shadow(0 0 6px rgba(255,200,0,0.8)) brightness(1.35); }
+}
 
 /* Selected: glowing orbit ring */
 .cell.selected {
@@ -195,9 +205,10 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 @keyframes shakeLg  { 0%,100%{transform:translate(0,0);} 10%{transform:translate(-10px,4px) rotate(-1deg);} 30%{transform:translate(10px,-4px) rotate(1deg);} 50%{transform:translate(-8px,3px) rotate(-0.5deg);} 70%{transform:translate(8px,-3px) rotate(0.5deg);} 90%{transform:translate(-4px,1px);} }
 @keyframes shakeEpic{ 0%,100%{transform:translate(0,0) scale(1);} 8%{transform:translate(-14px,6px) rotate(-2deg) scale(1.02);} 20%{transform:translate(14px,-6px) rotate(2deg) scale(0.98);} 35%{transform:translate(-10px,5px) rotate(-1.5deg);} 50%{transform:translate(12px,-4px) rotate(1.5deg);} 65%{transform:translate(-8px,3px) rotate(-1deg);} 80%{transform:translate(7px,-2px);} }
 
-/* ── Special gems ── */
-.cell.special-black-hole svg { filter: drop-shadow(0 0 10px rgba(180,0,255,0.9)) drop-shadow(0 0 20px rgba(100,0,200,0.7)) !important; }
+/* ── Special objects ── */
+.cell.special-black-hole svg { filter: drop-shadow(0 0 10px rgba(180,0,255,0.9))  drop-shadow(0 0 20px rgba(100,0,200,0.7))  !important; }
 .cell.special-pulsar svg     { filter: drop-shadow(0 0 10px rgba(255,200,50,0.9))  drop-shadow(0 0 20px rgba(255,150,0,0.7))  !important; }
+.cell.special-quantum-explosion svg { filter: drop-shadow(0 0 10px rgba(255,255,255,0.95)) drop-shadow(0 0 20px rgba(100,200,255,0.8)) !important; }
 
 /* ── Moves display ── */
 #moves-wrap { width:100%; display:flex; align-items:center; justify-content:center; gap:6px; }
@@ -256,7 +267,76 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 .ov-btn.primary { background:linear-gradient(135deg,#2563eb,#7eb8ff); color:#fff; box-shadow:0 4px 20px rgba(126,184,255,0.4); }
 .ov-btn.secondary { background:rgba(255,255,255,0.08); color:#aaa; border:1px solid rgba(255,255,255,0.15); }
 
-/* ── Mode select ── */
+/* ── Tutorial screen ── */
+#tutorial-screen {
+  display:flex; position:fixed; inset:0;
+  background:#060818; z-index:500;
+  flex-direction:column; align-items:center; justify-content:space-between;
+  padding:20px 20px 28px;
+}
+#tutorial-screen.hidden { display:none; }
+
+#tut-pages { flex:1; width:100%; overflow:hidden; position:relative; }
+.tut-page {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  gap:10px; padding:0 4px;
+  opacity:0; pointer-events:none; transform:translateX(60px);
+  transition:opacity 0.3s ease, transform 0.3s ease;
+  overflow-y:auto;
+}
+.tut-page.active { opacity:1; pointer-events:all; transform:translateX(0); }
+.tut-page.exit   { opacity:0; transform:translateX(-60px); }
+
+.tut-title {
+  font-size:20px; font-weight:900; letter-spacing:3px; text-transform:uppercase;
+  background:linear-gradient(135deg,#ffd700,#7eb8ff,#c084fc);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  text-align:center; margin-bottom:4px;
+}
+.tut-text { font-size:13px; color:#8aaad0; text-align:center; line-height:1.6; max-width:320px; }
+.tut-text strong { color:#c8e0ff; }
+
+/* Planet grid */
+.tut-planet-grid {
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:8px; width:100%; max-width:340px;
+}
+.tut-planet-item {
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+}
+.tut-planet-item svg { width:44px; height:44px; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6)); }
+.tut-planet-name { font-size:9px; color:#7eb8ff; letter-spacing:1px; text-transform:uppercase; text-align:center; }
+
+/* Specials list */
+.tut-special {
+  display:flex; align-items:center; gap:12px;
+  background:rgba(126,184,255,0.06); border:1px solid rgba(126,184,255,0.1);
+  border-radius:14px; padding:10px 14px; width:100%; max-width:340px;
+}
+.tut-special svg { width:44px; height:44px; flex-shrink:0; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
+.tut-special-info { flex:1; }
+.tut-special-name { font-size:13px; font-weight:800; color:#fff; margin-bottom:2px; }
+.tut-special-how  { font-size:10px; color:#7eb8ff; margin-bottom:3px; letter-spacing:0.5px; }
+.tut-special-desc { font-size:11px; color:#8aaad0; line-height:1.4; }
+
+/* Dots + nav */
+#tut-dots { display:flex; gap:7px; margin:10px 0 4px; }
+.tut-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:rgba(126,184,255,0.2); border:1px solid rgba(126,184,255,0.3);
+  transition:all 0.2s;
+}
+.tut-dot.active { background:#7eb8ff; box-shadow:0 0 6px #7eb8ff; }
+
+#tut-nav { display:flex; gap:12px; width:100%; max-width:340px; }
+#tut-next { flex:1; }
+#tut-skip {
+  background:none; border:none; color:#4a6a9a; font-size:13px;
+  cursor:pointer; padding:8px 16px; border-radius:20px;
+  border:1px solid rgba(126,184,255,0.12);
+}
+
 #mode-screen {
   display:flex; position:fixed; inset:0;
   background:#060818; z-index:400;
@@ -269,11 +349,6 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
   -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
   text-align:center;
 }
-.ms-planets {
-  display:flex; gap:10px; font-size:28px;
-  animation:orbitRow 8s linear infinite;
-}
-@keyframes orbitRow { 0%{transform:translateX(-8px);} 50%{transform:translateX(8px);} 100%{transform:translateX(-8px);} }
 .ms-sub { font-size:13px; color:#4a6a9a; text-align:center; margin-top:-8px; }
 .mode-btn {
   width:100%; max-width:280px; padding:18px 22px;
@@ -287,6 +362,13 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 .mode-btn .micon  { font-size:34px; line-height:1; }
 .mode-btn .mlabel { font-size:20px; font-weight:900; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,0.4); }
 .mode-btn .mdesc  { font-size:11px; color:rgba(255,255,255,0.8); text-align:center; line-height:1.4; }
+#btn-how-to-play {
+  background:none; border:1px solid rgba(126,184,255,0.25);
+  border-radius:20px; color:#7eb8ff; font-size:14px;
+  padding:10px 28px; cursor:pointer; letter-spacing:1px;
+  transition:background 0.15s;
+}
+#btn-how-to-play:active { background:rgba(126,184,255,0.1); }
 </style>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -295,7 +377,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 
 <div id="space-bg"></div>
 
-<div id="app">
+<div id="app" class="hidden">
   <div id="title">Planet Crush!</div>
   <div id="header">
     <div class="hbox"><div class="hlabel">Score</div><div class="hval" id="score">0</div></div>
@@ -308,7 +390,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
   </div>
   <div id="board-wrap"><div id="board"></div></div>
   <div id="moves-wrap">
-    <span id="moves-label">Moves</span>
+    <span id="moves-label">Moves Left</span>
     <span id="moves-count">20</span>
   </div>
 </div>
@@ -332,9 +414,65 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
   </div>
 </div>
 
+<div id="tutorial-screen" class="hidden">
+  <div class="ms-title" style="margin-bottom:4px">How to Play</div>
+
+  <div id="tut-pages">
+
+    <!-- Page 1: Objective -->
+    <div class="tut-page active" id="tut-p0">
+      <div class="tut-title">🎯 Mission Briefing</div>
+      <div class="tut-text">
+        <strong>Swap</strong> adjacent planets to line up 3 or more of the same kind.<br><br>
+        Matched planets vanish, the board refills from above, and chain reactions earn bonus points.<br><br>
+        Reach the <strong>sector score target</strong> before your moves run out to advance to the next sector.<br><br>
+        <strong>Swipe</strong> a planet to swap it, or <strong>tap</strong> two planets in a row to swap them.
+      </div>
+      <div id="tut-swap-diagram" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;">
+        <!-- populated by JS with real planet SVGs -->
+      </div>
+    </div>
+
+    <!-- Page 2: Planets -->
+    <div class="tut-page" id="tut-p1">
+      <div class="tut-title">🌍 The Planets</div>
+      <div class="tut-text" style="margin-bottom:4px">8 planets roam the board — match 3 or more of the same type.</div>
+      <div class="tut-planet-grid" id="tut-planet-grid"></div>
+    </div>
+
+    <!-- Page 3: Specials -->
+    <div class="tut-page" id="tut-p2">
+      <div class="tut-title">✨ Special Objects</div>
+      <div class="tut-text" style="margin-bottom:6px">Bigger matches create powerful special objects.</div>
+
+      <div class="tut-special" id="tut-sp-pulsar"></div>
+      <div class="tut-special" id="tut-sp-blackhole"></div>
+      <div class="tut-special" id="tut-sp-quantum"></div>
+      <div class="tut-special" style="background:rgba(255,215,0,0.06);border-color:rgba(255,215,0,0.15);">
+        <div style="font-size:28px;flex-shrink:0">⭐🌑</div>
+        <div class="tut-special-info">
+          <div class="tut-special-name">Special + Special</div>
+          <div class="tut-special-how">Swap any two specials together</div>
+          <div class="tut-special-desc">Always fires a <strong style="color:#ffd700">Pulsar blast</strong> through both — wiping two full rows and two full columns at once!</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="tut-dots">
+    <div class="tut-dot active"></div>
+    <div class="tut-dot"></div>
+    <div class="tut-dot"></div>
+  </div>
+
+  <div id="tut-nav">
+    <button class="ov-btn primary" id="tut-next">Next →</button>
+    <button id="tut-skip">Skip</button>
+  </div>
+</div>
 <div id="mode-screen">
   <div class="ms-title">Planet Crush!</div>
-  <div class="ms-planets">🌍 🪐 ☀️ 🌕 🔴 🟡</div>
   <div class="ms-sub">Choose your mission</div>
   <button class="mode-btn mode-btn-kid" id="btn-kid">
     <span class="micon">🌍</span>
@@ -346,6 +484,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
     <span class="mlabel">Commander</span>
     <span class="mdesc">Fewer moves · Harder targets<br>For seasoned space veterans!</span>
   </button>
+  <button id="btn-how-to-play">📖 How to Play</button>
 </div>
 
 <script>
@@ -482,7 +621,7 @@ function soundLevelUp() {
   noise(0.15, 0.12, 1200, 0.3);
 }
 
-// Special gem activation: sci-fi zap
+// Special object activation: sci-fi zap
 function soundSpecial() {
   tone(1200, 0.08, 0.28, 'square', 0);
   tone(800,  0.12, 0.22, 'square', 0.05);
@@ -498,9 +637,10 @@ document.getElementById('mute-btn').addEventListener('click', () => {
 // ═══ GAME CONSTANTS ═══════════════════════════════════════════════════════════
 const COLS = 8, ROWS = 10;
 const PLANET_TYPES = 8;
-// Special gem types (stored in gem.special)
-const SPECIAL_BLACK_HOLE = 'black-hole'; // clears entire row + column
-const SPECIAL_PULSAR     = 'pulsar';     // blasts 3x3 area around it
+// Special object types
+const SPECIAL_PULSAR     = 'pulsar';      // match 4 → wipes full row + column
+const SPECIAL_BLACK_HOLE = 'black-hole';  // match 5 → explodes 3×3 area
+const SPECIAL_QUANTUM_EXPLOSION = 'quantum-explosion';  // match L/T shape → removes ALL of one planet type
 
 const LEVEL_TARGETS = [2000, 5000, 10000, 18000, 30000, 46000, 65000, 88000, 115000, 147000];
 const BASE_MOVES = { kid: 30, adult: 20 };
@@ -527,6 +667,23 @@ function initBoard() {
         ) { board[r][c] = randomPlanet(); changed = true; }
       }
     }
+  }
+  // Kid mode: seed pre-placed specials for powerful early moves
+  if (gameMode === 'kid') {
+    const allCells = [];
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        allCells.push([r, c]);
+    allCells.sort(() => Math.random() - 0.5);
+    [
+      SPECIAL_PULSAR, SPECIAL_PULSAR, SPECIAL_PULSAR,
+      SPECIAL_BLACK_HOLE, SPECIAL_BLACK_HOLE,
+      SPECIAL_QUANTUM_EXPLOSION,
+    ].forEach((sp, i) => {
+      const [r, c] = allCells[i];
+      // Keep the planet's type so Quantum Explosion knows what to clear when swapped
+      board[r][c] = { type: board[r][c].type, special: sp };
+    });
   }
 }
 
@@ -771,48 +928,84 @@ function makeCell(r, c) {
   div.className = 'cell';
   const planet = board[r][c];
   if (planet) {
-    div.classList.add('gem', 'p' + planet.type);
-    if (planet.special) div.classList.add('special-' + planet.special);
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 40 40');
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    svg.innerHTML = PLANET_SVG[planet.type]() + SPECIAL_OVERLAY_SVG[planet.special || '']();
+    if (planet.special) {
+      // Specials are their own standalone object — no planet underneath
+      div.classList.add('gem', 'special-' + planet.special);
+      svg.innerHTML = SPECIAL_SVG[planet.special]();
+    } else {
+      // Normal planet
+      div.classList.add('gem', 'p' + planet.type);
+      svg.innerHTML = PLANET_SVG[planet.type]();
+    }
     div.appendChild(svg);
   }
   return div;
 }
 
-// SVG overlays drawn on top of any planet for special types
-const SPECIAL_OVERLAY_SVG = {
-  '': () => '',
-  // Black Hole: dark swirling vortex overlay + crosshair
-  'black-hole': () => `
-    <circle cx="20" cy="20" r="17" fill="rgba(60,0,120,0.55)"/>
-    <circle cx="20" cy="20" r="10" fill="rgba(20,0,60,0.7)"/>
-    <circle cx="20" cy="20" r="5"  fill="rgba(0,0,20,0.9)"/>
-    <path d="M20 3 Q30 12 28 20 Q26 28 20 30 Q14 32 12 24 Q10 16 20 3Z"
-          fill="none" stroke="rgba(180,100,255,0.8)" stroke-width="1.2"/>
-    <path d="M20 37 Q10 28 12 20 Q14 12 20 10 Q26 8 28 16 Q30 24 20 37Z"
-          fill="none" stroke="rgba(180,100,255,0.6)" stroke-width="0.9"/>
-    <circle cx="20" cy="20" r="2.5" fill="white" opacity="0.9"/>
-    <line x1="20" y1="14" x2="20" y2="26" stroke="white" stroke-width="0.8" opacity="0.7"/>
-    <line x1="14" y1="20" x2="26" y2="20" stroke="white" stroke-width="0.8" opacity="0.7"/>`,
-  // Pulsar: radiating ring burst overlay
+// Standalone SVG designs for special objects — no planet underneath
+const SPECIAL_SVG = {
+  // ⭐ Pulsar — gold 8-point star, explodes 3×3
   'pulsar': () => `
-    <circle cx="20" cy="20" r="17" fill="rgba(255,180,0,0.3)"/>
-    <circle cx="20" cy="20" r="12" fill="rgba(255,220,50,0.25)"/>
-    <circle cx="20" cy="20" r="17" fill="none" stroke="rgba(255,220,50,0.9)" stroke-width="2.5"/>
-    <circle cx="20" cy="20" r="12" fill="none" stroke="rgba(255,180,0,0.7)" stroke-width="1.5"/>
-    <circle cx="20" cy="20" r="7"  fill="none" stroke="rgba(255,255,100,0.6)" stroke-width="1"/>
-    <circle cx="20" cy="20" r="3"  fill="rgba(255,255,200,0.95)"/>
-    <line x1="20" y1="1"  x2="20" y2="6"  stroke="rgba(255,230,50,0.85)" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="20" y1="34" x2="20" y2="39" stroke="rgba(255,230,50,0.85)" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="1"  y1="20" x2="6"  y2="20" stroke="rgba(255,230,50,0.85)" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="34" y1="20" x2="39" y2="20" stroke="rgba(255,230,50,0.85)" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="5"  y1="5"  x2="9"  y2="9"  stroke="rgba(255,230,50,0.6)" stroke-width="1.2" stroke-linecap="round"/>
-    <line x1="35" y1="5"  x2="31" y2="9"  stroke="rgba(255,230,50,0.6)" stroke-width="1.2" stroke-linecap="round"/>
-    <line x1="5"  y1="35" x2="9"  y2="31" stroke="rgba(255,230,50,0.6)" stroke-width="1.2" stroke-linecap="round"/>
-    <line x1="35" y1="35" x2="31" y2="31" stroke="rgba(255,230,50,0.6)" stroke-width="1.2" stroke-linecap="round"/>`,
+    <defs><radialGradient id="psg" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#fff7a0"/>
+      <stop offset="50%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </radialGradient></defs>
+    <circle cx="20" cy="20" r="18" fill="#1a0a00" opacity="0.6"/>
+    <!-- outer glow ring -->
+    <circle cx="20" cy="20" r="17" fill="none" stroke="#fbbf24" stroke-width="1" opacity="0.5"/>
+    <!-- 8-point star -->
+    <polygon points="20,3 22.8,15 36,20 22.8,25 20,37 17.2,25 4,20 17.2,15"
+             fill="url(#psg)" stroke="#f59e0b" stroke-width="0.6"/>
+    <!-- inner bright core -->
+    <circle cx="20" cy="20" r="5.5" fill="#fffde7"/>
+    <circle cx="20" cy="20" r="3"   fill="white"/>
+    <!-- sparkle rays -->
+    <line x1="20" y1="10" x2="20" y2="13" stroke="white" stroke-width="1.2" opacity="0.8"/>
+    <line x1="20" y1="27" x2="20" y2="30" stroke="white" stroke-width="1.2" opacity="0.8"/>
+    <line x1="10" y1="20" x2="13" y2="20" stroke="white" stroke-width="1.2" opacity="0.8"/>
+    <line x1="27" y1="20" x2="30" y2="20" stroke="white" stroke-width="1.2" opacity="0.8"/>`,
+
+  // 🌑 Black Hole — swirling dark vortex, wipes row + column
+  'black-hole': () => `
+    <defs><radialGradient id="bhg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e003a"/>
+      <stop offset="60%" stop-color="#3b0070"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </radialGradient></defs>
+    <circle cx="20" cy="20" r="18" fill="url(#bhg)"/>
+    <!-- accretion disc rings -->
+    <ellipse cx="20" cy="20" rx="16" ry="6"  fill="none" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
+    <ellipse cx="20" cy="20" rx="12" ry="4.2" fill="none" stroke="#c4b5fd" stroke-width="1.2" opacity="0.5"/>
+    <ellipse cx="20" cy="20" rx="8"  ry="2.5" fill="none" stroke="#ddd6fe" stroke-width="1"   opacity="0.4"/>
+    <!-- event horizon -->
+    <circle cx="20" cy="20" r="5.5" fill="#0a0015"/>
+    <circle cx="20" cy="20" r="3"   fill="#050008"/>
+    <!-- cross sight lines -->
+    <line x1="20" y1="2" x2="20" y2="38" stroke="#a78bfa" stroke-width="0.6" opacity="0.35"/>
+    <line x1="2" y1="20" x2="38" y2="20" stroke="#a78bfa" stroke-width="0.6" opacity="0.35"/>`,
+
+  // 🌈 Quantum Explosion — rainbow swirl, removes all of one type
+  'quantum-explosion': () => `
+    <defs><radialGradient id="cbg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0d0d1a"/>
+    </radialGradient></defs>
+    <circle cx="20" cy="20" r="18" fill="url(#cbg)"/>
+    <!-- rainbow arc segments -->
+    <path d="M20 5 A15 15 0 0 1 32.99 12.5" stroke="#ff4444" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M32.99 12.5 A15 15 0 0 1 35 20"  stroke="#ff8800" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M35 20 A15 15 0 0 1 27.5 32.99"  stroke="#ffee00" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M27.5 32.99 A15 15 0 0 1 20 35"  stroke="#44dd44" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M20 35 A15 15 0 0 1 5 20"        stroke="#4488ff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M5 20 A15 15 0 0 1 20 5"         stroke="#cc44ff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <!-- bright centre -->
+    <circle cx="20" cy="20" r="6"   fill="white" opacity="0.95"/>
+    <circle cx="20" cy="20" r="3.5" fill="#e0d0ff"/>
+    <circle cx="20" cy="20" r="1.5" fill="white"/>`,
 };
 
 function updateCell(r, c) {
@@ -839,6 +1032,58 @@ function updateMoves() {
   document.getElementById('moves-count').textContent = movesLeft;
 }
 
+// ── Idle hint system (kid mode only) ─────────────────────────────────────────
+let _hintTimer = null;
+let _hintCell  = null;
+
+function clearHint() {
+  if (_hintCell !== null) {
+    const el = document.getElementById('board')?.children[_hintCell];
+    el?.classList.remove('hint');
+    _hintCell = null;
+  }
+}
+
+function resetHintTimer() {
+  clearHint();
+  clearTimeout(_hintTimer);
+  if (gameMode !== 'kid' || animating) return;
+  _hintTimer = setTimeout(showHint, 4000);
+}
+
+function showHint() {
+  if (animating || gameMode !== 'kid') return;
+  // Find a valid swap and highlight one of the two gems
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (c + 1 < COLS) {
+        const t = board[r][c]; board[r][c] = board[r][c+1]; board[r][c+1] = t;
+        const valid = findMatches().matched.size > 0;
+        const t2 = board[r][c]; board[r][c] = board[r][c+1]; board[r][c+1] = t2;
+        if (valid) {
+          const idx = r * COLS + c;
+          const el = document.getElementById('board')?.children[idx];
+          el?.classList.add('hint');
+          _hintCell = idx;
+          return;
+        }
+      }
+      if (r + 1 < ROWS) {
+        const t = board[r][c]; board[r][c] = board[r+1][c]; board[r+1][c] = t;
+        const valid = findMatches().matched.size > 0;
+        const t2 = board[r][c]; board[r][c] = board[r+1][c]; board[r+1][c] = t2;
+        if (valid) {
+          const idx = r * COLS + c;
+          const el = document.getElementById('board')?.children[idx];
+          el?.classList.add('hint');
+          _hintCell = idx;
+          return;
+        }
+      }
+    }
+  }
+}
+
 // ═══ EVENTS ═══════════════════════════════════════════════════════════════════
 let touchStart = null;
 let touchStartXY = null;
@@ -863,6 +1108,7 @@ function cellFromPoint(x, y) {
 
 function onTouchStart(e) {
   e.preventDefault();
+  clearHint(); clearTimeout(_hintTimer);
   const t = e.touches[0];
   touchStart = cellFromPoint(t.clientX, t.clientY);
   touchStartXY = { x: t.clientX, y: t.clientY };
@@ -877,10 +1123,8 @@ function onTouchEnd(e) {
   const dist = Math.sqrt(dx*dx + dy*dy);
 
   if (dist < 12) {
-    // Tap
     handleTap(touchStart.r, touchStart.c);
   } else {
-    // Swipe — determine direction and swap with neighbour
     let tr = touchStart.r, tc = touchStart.c;
     if (Math.abs(dx) > Math.abs(dy)) {
       tc += dx > 0 ? 1 : -1;
@@ -897,6 +1141,7 @@ function onTouchEnd(e) {
 let mouseDown = null;
 let mouseDownXY = null;
 function onMouseDown(e) {
+  clearHint(); clearTimeout(_hintTimer);
   const cell = e.target.closest('[data-r]');
   mouseDown = cell ? { r: +cell.dataset.r, c: +cell.dataset.c } : null;
   mouseDownXY = { x: e.clientX, y: e.clientY };
@@ -946,6 +1191,102 @@ async function handleSwap(r1, c1, r2, c2) {
   animating = true;
   soundSwap();
 
+  const gemA = board[r1][c1];
+  const gemB = board[r2][c2];
+
+  // ── Special wildcard activation ──────────────────────────────────────────
+  // If either gem is a special, activate it using the OTHER gem as the target
+  const special = gemA.special ? gemA : gemB.special ? gemB : null;
+  const target  = gemA.special ? gemB : gemA;
+  const specialPos = gemA.special ? { r: r1, c: c1 } : { r: r2, c: c2 };
+  const targetPos  = gemA.special ? { r: r2, c: c2 } : { r: r1, c: c1 };
+
+  if (special) {
+    // Do the visual swap first
+    board[r1][c1] = gemB; board[r2][c2] = gemA;
+    updateCell(r1, c1); updateCell(r2, c2);
+    await wait(150);
+
+    movesLeft--;
+    updateMoves();
+
+    const blastCells = new Set();
+
+    // ── Special + Special = always Pulsar (row + column) ─────────────────────
+    if (gemA.special && gemB.special) {
+      // Wipe full row + column through both special positions
+      for (let pos of [{ r: r1, c: c1 }, { r: r2, c: c2 }]) {
+        for (let cc = 0; cc < COLS; cc++) blastCells.add(pos.r + ',' + cc);
+        for (let rr = 0; rr < ROWS; rr++) blastCells.add(rr + ',' + pos.c);
+      }
+      showPopup('⭐ PULSAR BLAST!');
+      soundSpecial();
+    } else if (special.special === SPECIAL_QUANTUM_EXPLOSION) {
+      // Destroy all planets of the target's type on the board
+      const targetType = target.type;
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          if (board[r][c] && !board[r][c].special && board[r][c].type === targetType) blastCells.add(r + ',' + c);
+      // Also remove the special itself
+      blastCells.add(specialPos.r + ',' + specialPos.c);
+      showPopup('💥 QUANTUM EXPLOSION!');
+      soundSpecial();
+    } else if (special.special === SPECIAL_BLACK_HOLE) {
+      // Blast 3×3 area centred on where the Black Hole LANDS after the swap
+      const br = targetPos.r, bc = targetPos.c;
+      for (let dr = -1; dr <= 1; dr++)
+        for (let dc = -1; dc <= 1; dc++) {
+          const nr = br+dr, nc = bc+dc;
+          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) blastCells.add(nr+','+nc);
+        }
+      showPopup('🌑 BLACK HOLE!');
+      soundSpecial();
+    } else if (special.special === SPECIAL_PULSAR) {
+      // Wipe entire row + column through the Pulsar's OWN position
+      const pr = specialPos.r, pc = specialPos.c;
+      for (let cc = 0; cc < COLS; cc++) blastCells.add(pr + ',' + cc);
+      for (let rr = 0; rr < ROWS; rr++) blastCells.add(rr + ',' + pc);
+      showPopup('⭐ PULSAR BLAST!');
+      soundSpecial();
+    }
+
+    // Animate blast
+    const boardEl = document.getElementById('board');
+    blastCells.forEach(key => {
+      const [r, c] = key.split(',').map(Number);
+      boardEl.children[r * COLS + c]?.classList.add('matched');
+    });
+    const wrap = document.getElementById('board-wrap');
+    wrap.classList.add('shake-lg');
+    wrap.addEventListener('animationend', () => wrap.classList.remove('shake-lg'), { once: true });
+
+    await wait(560);
+
+    const pts = blastCells.size * 20;
+    score += pts;
+    if (score > best) { best = score; localStorage.setItem('planet_crush_best_' + gameMode, best); }
+    updateScore();
+    showScorePop(pts);
+
+    blastCells.forEach(key => {
+      const [r, c] = key.split(',').map(Number);
+      board[r][c] = null;
+    });
+
+    await dropPlanetsAnimated();
+    await fillGapsAnimated();
+
+    // Check for cascades after special
+    const { matched: cascadeMatches, specials: cascadeSpecials } = findMatches();
+    if (cascadeMatches.size > 0) await resolveMatches(cascadeMatches, cascadeSpecials);
+
+    checkGameState();
+    animating = false;
+    resetHintTimer();
+    return;
+  }
+
+  // ── Normal swap ──────────────────────────────────────────────────────────
   const tmp = board[r1][c1]; board[r1][c1] = board[r2][c2]; board[r2][c2] = tmp;
   updateCell(r1, c1); updateCell(r2, c2);
 
@@ -961,6 +1302,7 @@ async function handleSwap(r1, c1, r2, c2) {
     });
     soundNoMatch();
     animating = false;
+    resetHintTimer();
     return;
   }
 
@@ -969,57 +1311,105 @@ async function handleSwap(r1, c1, r2, c2) {
   await resolveMatches(matches, specials);
   checkGameState();
   animating = false;
+  resetHintTimer();
 }
 
 // ═══ MATCH FINDING ════════════════════════════════════════════════════════════
 // Returns { matched: Set of "r,c", specials: Map of "r,c" -> special type }
 function findMatches() {
   const matched  = new Set();
-  const specials = new Map(); // cells that should become a special gem
+  const specials = new Map();
 
   function processRun(cells, runType) {
-    if (cells.length < 3) return;
+    if (cells.length < 3 || runType === undefined || runType === null) return;
     cells.forEach(k => matched.add(k));
-    // 5+ in a row → Black Hole at centre
     if (cells.length >= 5) {
-      const mid = cells[Math.floor(cells.length / 2)];
-      specials.set(mid, { type: runType, special: SPECIAL_BLACK_HOLE });
-    }
-    // Exactly 4 in a row → Pulsar at centre
-    else if (cells.length === 4) {
-      const mid = cells[1];
-      specials.set(mid, { type: runType, special: SPECIAL_PULSAR });
+      // 5+ in a row → Black Hole (row + column wipe)
+      specials.set(cells[Math.floor(cells.length / 2)], { type: runType, special: SPECIAL_BLACK_HOLE });
+    } else if (cells.length === 4) {
+      // 4 in a row → Pulsar (3×3 explosion)
+      specials.set(cells[Math.floor(cells.length / 2)], { type: runType, special: SPECIAL_PULSAR });
     }
   }
 
-  // Horizontal runs
+  // Horizontal runs — only start a run when we have a real non-special object
   for (let r = 0; r < ROWS; r++) {
-    let run = [r + ',' + 0], runType = board[r][0]?.type;
-    for (let c = 1; c <= COLS; c++) {
-      const gem = c < COLS ? board[r][c] : null;
-      if (gem && !gem.special && gem.type === runType && !board[r][c-1]?.special) {
-        run.push(r + ',' + c);
+    let run = [], runType = null;
+    for (let c = 0; c < COLS; c++) {
+      const gem = board[r][c];
+      if (gem && !gem.special) {
+        if (gem.type === runType) {
+          run.push(r + ',' + c);
+        } else {
+          processRun(run, runType);
+          run = [r + ',' + c];
+          runType = gem.type;
+        }
       } else {
+        // null or special cell — end current run
         processRun(run, runType);
-        run = c < COLS ? [r + ',' + c] : [];
-        runType = gem?.type;
+        run = []; runType = null;
       }
     }
+    processRun(run, runType);
   }
+
   // Vertical runs
   for (let c = 0; c < COLS; c++) {
-    let run = [0 + ',' + c], runType = board[0][c]?.type;
-    for (let r = 1; r <= ROWS; r++) {
-      const gem = r < ROWS ? board[r][c] : null;
-      if (gem && !gem.special && gem.type === runType && !board[r-1][c]?.special) {
-        run.push(r + ',' + c);
+    let run = [], runType = null;
+    for (let r = 0; r < ROWS; r++) {
+      const gem = board[r][c];
+      if (gem && !gem.special) {
+        if (gem.type === runType) {
+          run.push(r + ',' + c);
+        } else {
+          processRun(run, runType);
+          run = [r + ',' + c];
+          runType = gem.type;
+        }
       } else {
         processRun(run, runType);
-        run = r < ROWS ? [r + ',' + c] : [];
-        runType = gem?.type;
+        run = []; runType = null;
       }
     }
+    processRun(run, runType);
   }
+
+  // L/T shape detection → Quantum Explosion (remove all of that type)
+  // Look for any cell that appears in both a horizontal AND vertical match-run
+  const hMatched = new Set(), vMatched = new Set();
+  for (let r = 0; r < ROWS; r++) {
+    let run = [], runType = null;
+    for (let c = 0; c < COLS; c++) {
+      const gem = board[r][c];
+      if (gem && !gem.special) {
+        if (gem.type === runType) { run.push(r+','+c); }
+        else { if (run.length >= 3) run.forEach(k => hMatched.add(k)); run = [r+','+c]; runType = gem.type; }
+      } else { if (run.length >= 3) run.forEach(k => hMatched.add(k)); run = []; runType = null; }
+    }
+    if (run.length >= 3) run.forEach(k => hMatched.add(k));
+  }
+  for (let c = 0; c < COLS; c++) {
+    let run = [], runType = null;
+    for (let r = 0; r < ROWS; r++) {
+      const gem = board[r][c];
+      if (gem && !gem.special) {
+        if (gem.type === runType) { run.push(r+','+c); }
+        else { if (run.length >= 3) run.forEach(k => vMatched.add(k)); run = [r+','+c]; runType = gem.type; }
+      } else { if (run.length >= 3) run.forEach(k => vMatched.add(k)); run = []; runType = null; }
+    }
+    if (run.length >= 3) run.forEach(k => vMatched.add(k));
+  }
+  // Intersection cells (L/T/+ shapes) become quantum explosions
+  hMatched.forEach(k => {
+    if (vMatched.has(k)) {
+      const [r,c] = k.split(',').map(Number);
+      const gem = board[r][c];
+      if (gem && !gem.special && !specials.has(k)) {
+        specials.set(k, { type: gem.type, special: SPECIAL_QUANTUM_EXPLOSION });
+      }
+    }
+  });
 
   return { matched, specials };
 }
@@ -1047,26 +1437,41 @@ async function resolveMatches(matches, specials) {
 
     showScorePop(pts);
 
-    // Check if any matched cell is itself a special — trigger its extra effect
+    // Check if any matched cell is itself a special (shouldn't normally happen
+    // since specials are activated by swapping, but clean up any that land in matches)
+    // ── Fire special object effects ──────────────────────────────────────────────
     const extraCells = new Set();
     matches.forEach(key => {
       const [r, c] = key.split(',').map(Number);
       const gem = board[r][c];
-      if (!gem || !gem.special) return;
+      if (!gem?.special) return;
+
       if (gem.special === SPECIAL_BLACK_HOLE) {
-        // Wipe entire row + column
-        for (let cc = 0; cc < COLS; cc++) extraCells.add(r + ',' + cc);
-        for (let rr = 0; rr < ROWS; rr++) extraCells.add(rr + ',' + c);
+        // Blast 3×3 area
+        for (let dr = -1; dr <= 1; dr++)
+          for (let dc = -1; dc <= 1; dc++) {
+            const nr = r+dr, nc = c+dc;
+            if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) extraCells.add(nr+','+nc);
+          }
         showPopup('🌑 BLACK HOLE!');
         soundSpecial();
       } else if (gem.special === SPECIAL_PULSAR) {
-        // Blast 3×3 around it
-        for (let dr = -1; dr <= 1; dr++)
-          for (let dc = -1; dc <= 1; dc++) {
-            const nr = r + dr, nc = c + dc;
-            if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) extraCells.add(nr + ',' + nc);
-          }
+        // Wipe entire row + entire column
+        for (let cc = 0; cc < COLS; cc++) extraCells.add(r + ',' + cc);
+        for (let rr = 0; rr < ROWS; rr++) extraCells.add(rr + ',' + c);
         showPopup('⭐ PULSAR BLAST!');
+        soundSpecial();
+      } else if (gem.special === SPECIAL_QUANTUM_EXPLOSION) {
+        // Find the most common planet type on the board to clear
+        const typeCounts = new Array(PLANET_TYPES).fill(0);
+        for (let rr = 0; rr < ROWS; rr++)
+          for (let cc = 0; cc < COLS; cc++)
+            if (board[rr][cc] && !board[rr][cc].special) typeCounts[board[rr][cc].type]++;
+        const targetType = typeCounts.indexOf(Math.max(...typeCounts));
+        for (let rr = 0; rr < ROWS; rr++)
+          for (let cc = 0; cc < COLS; cc++)
+            if (board[rr][cc] && !board[rr][cc].special && board[rr][cc].type === targetType) extraCells.add(rr+','+cc);
+        showPopup('💥 QUANTUM EXPLOSION!');
         soundSpecial();
       }
     });
@@ -1219,6 +1624,11 @@ function checkGameState() {
 }
 
 function hasValidMove() {
+  // Any special object on the board can always be activated by swapping with a neighbour
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (board[r][c]?.special) return true;
+
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       if (c + 1 < COLS) {
@@ -1262,6 +1672,7 @@ function nextLevel() {
   document.getElementById('level-complete').classList.remove('show');
   initBoard(); renderBoard(); updateScore(); updateMoves();
   showPopup('🌌 Sector ' + level + '!');
+  resetHintTimer();
 }
 
 function startGame(mode) {
@@ -1269,10 +1680,12 @@ function startGame(mode) {
   score = 0; level = 1;
   best = parseInt(localStorage.getItem('planet_crush_best_' + mode) || '0');
   movesLeft = movesForLevel(1);
+  document.getElementById('app').classList.remove('hidden');
   document.getElementById('mode-screen').classList.add('hidden');
   document.getElementById('level-complete').classList.remove('show');
   document.getElementById('game-over').classList.remove('show');
   initBoard(); renderBoard(); updateScore(); updateMoves();
+  resetHintTimer();
 }
 
 // ═══ POPUPS ═══════════════════════════════════════════════════════════════════
@@ -1318,11 +1731,180 @@ document.getElementById('btn-adult').addEventListener('click',  () => startGame(
 document.getElementById('lc-next').addEventListener('click',    nextLevel);
 document.getElementById('go-restart').addEventListener('click', () => {
   document.getElementById('game-over').classList.remove('show');
+  document.getElementById('app').classList.add('hidden');
   document.getElementById('mode-screen').classList.remove('hidden');
 });
 
-window.addEventListener('resize', () => { setResponsiveSize(); renderBoard(); });
+window.addEventListener('resize', () => {
+  setResponsiveSize();
+  if (!document.getElementById('app').classList.contains('hidden')) renderBoard();
+});
 setResponsiveSize();
+
+// ═══ TUTORIAL ════════════════════════════════════════════════════════════════
+(function initTutorial() {
+  const PLANET_NAMES = ['Mercury','Venus','Earth','Mars','Jupiter','Saturn','Uranus','Neptune'];
+
+  // Build swap diagram on page 1 using real planet SVGs
+  function buildSwapDiagram() {
+    const wrap = document.getElementById('tut-swap-diagram');
+    if (!wrap || wrap.children.length > 0) return;
+
+    function makePlanetCell(type, size=52) {
+      const div = document.createElement('div');
+      div.style.cssText = `width:${size}px;height:${size}px;flex-shrink:0;`;
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 40 40');
+      svg.style.cssText = 'width:100%;height:100%;display:block;filter:drop-shadow(0 3px 8px rgba(0,0,0,0.5));';
+      svg.innerHTML = PLANET_SVG[type]();
+      div.appendChild(svg);
+      return div;
+    }
+
+    function makeArrows() {
+      // Double-headed swap arrows in SVG
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 48 52');
+      svg.style.cssText = 'width:40px;height:52px;flex-shrink:0;';
+      svg.innerHTML = `
+        <defs>
+          <marker id="ta1" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6Z" fill="#ffd700"/>
+          </marker>
+          <marker id="ta2" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto">
+            <path d="M6,0 L0,3 L6,6Z" fill="#ffd700"/>
+          </marker>
+        </defs>
+        <path d="M4 18 Q24 6 44 18" stroke="#ffd700" stroke-width="2.2" fill="none"
+              stroke-linecap="round" marker-end="url(#ta1)"/>
+        <path d="M44 34 Q24 46 4 34" stroke="#ffd700" stroke-width="2.2" fill="none"
+              stroke-linecap="round" marker-end="url(#ta2)"/>`;
+      return svg;
+    }
+
+    // Before: Earth · Mars · Earth  →  After: Mars · Earth · Earth
+    // Show "before" row, arrows, "after" row stacked vertically
+    const beforeLabel = document.createElement('div');
+    beforeLabel.style.cssText = 'font-size:10px;color:#4a6a9a;letter-spacing:1px;text-transform:uppercase;width:100%;text-align:center;';
+    beforeLabel.textContent = 'Before';
+
+    const beforeRow = document.createElement('div');
+    beforeRow.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    beforeRow.appendChild(makePlanetCell(2)); // Earth
+    beforeRow.appendChild(makePlanetCell(3)); // Mars
+    beforeRow.appendChild(makePlanetCell(2)); // Earth
+
+    const arrowRow = document.createElement('div');
+    arrowRow.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:6px;';
+    // Arrow centred between planet 1 and 2
+    const spacer1 = document.createElement('div');
+    spacer1.style.cssText = 'width:52px;flex-shrink:0;';
+    const spacer2 = document.createElement('div');
+    spacer2.style.cssText = 'width:52px;flex-shrink:0;';
+    arrowRow.appendChild(spacer1);
+    arrowRow.appendChild(makeArrows());
+    arrowRow.appendChild(spacer2);
+
+    const afterLabel = document.createElement('div');
+    afterLabel.style.cssText = 'font-size:10px;color:#4a6a9a;letter-spacing:1px;text-transform:uppercase;width:100%;text-align:center;';
+    afterLabel.textContent = 'After';
+
+    const afterRow = document.createElement('div');
+    afterRow.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    afterRow.appendChild(makePlanetCell(3)); // Mars
+    afterRow.appendChild(makePlanetCell(2)); // Earth
+    afterRow.appendChild(makePlanetCell(2)); // Earth
+
+    wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:8px;';
+    wrap.appendChild(beforeLabel);
+    wrap.appendChild(beforeRow);
+    wrap.appendChild(arrowRow);
+    wrap.appendChild(afterLabel);
+    wrap.appendChild(afterRow);
+  }
+
+  // Build planet grid on page 2
+  function buildPlanetGrid() {
+    const grid = document.getElementById('tut-planet-grid');
+    if (!grid || grid.children.length > 0) return;
+    PLANET_NAMES.forEach((name, i) => {
+      const item = document.createElement('div');
+      item.className = 'tut-planet-item';
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 40 40');
+      svg.innerHTML = PLANET_SVG[i]();
+      const label = document.createElement('div');
+      label.className = 'tut-planet-name';
+      label.textContent = name;
+      item.appendChild(svg); item.appendChild(label);
+      grid.appendChild(item);
+    });
+  }
+
+  // Build special cards on page 3
+  function buildSpecials() {
+    const specDefs = [
+      { id:'tut-sp-pulsar',    svg: SPECIAL_SVG['pulsar'],       name:'⭐ Pulsar',        how:'Match 4 in a row',         desc:'Wipes the entire row and column it sits on — a cross blast across the board.' },
+      { id:'tut-sp-blackhole', svg: SPECIAL_SVG['black-hole'],   name:'🌑 Black Hole',    how:'Match 5 or more in a row', desc:'Explodes the 3×3 area around it, destroying up to 9 nearby planets.' },
+      { id:'tut-sp-quantum',   svg: SPECIAL_SVG['quantum-explosion'], name:'💥 Quantum Explosion',  how:'Match an L or T shape',    desc:'Destroys every planet of the same type across the whole board — quantum entanglement!' },
+    ];
+    specDefs.forEach(({ id, svg, name, how, desc }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const svgEl = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svgEl.setAttribute('viewBox','0 0 40 40');
+      svgEl.innerHTML = svg();
+      const info = document.createElement('div');
+      info.className = 'tut-special-info';
+      info.innerHTML = `<div class="tut-special-name">${name}</div><div class="tut-special-how">${how}</div><div class="tut-special-desc">${desc}</div>`;
+      el.appendChild(svgEl); el.appendChild(info);
+    });
+  }
+
+  let tutPage = 0;
+  const pages = document.querySelectorAll('.tut-page');
+  const dots  = document.querySelectorAll('.tut-dot');
+  const totalPages = pages.length;
+
+  function goToPage(n) {
+    pages[tutPage].classList.remove('active');
+    pages[tutPage].classList.add('exit');
+    setTimeout(() => pages[tutPage < n ? tutPage : n].classList.remove('exit'), 300);
+    tutPage = n;
+    pages[tutPage].classList.add('active');
+    dots.forEach((d,i) => d.classList.toggle('active', i === tutPage));
+    document.getElementById('tut-next').textContent = tutPage === totalPages-1 ? "Let's Go! 🚀" : 'Next →';
+    if (tutPage === 0) buildSwapDiagram();
+    if (tutPage === 1) buildPlanetGrid();
+    if (tutPage === 2) buildSpecials();
+  }
+
+  function closeTutorial() {
+    document.getElementById('tutorial-screen').classList.add('hidden');
+    document.getElementById('mode-screen').classList.remove('hidden');
+    localStorage.setItem('planet_crush_tutorial_done', '1');
+  }
+
+  document.getElementById('tut-next').addEventListener('click', () => {
+    if (tutPage < totalPages - 1) goToPage(tutPage + 1);
+    else closeTutorial();
+  });
+  document.getElementById('tut-skip').addEventListener('click', closeTutorial);
+
+  // How to Play button on mode screen — reopen tutorial from page 1
+  document.getElementById('btn-how-to-play').addEventListener('click', () => {
+    document.getElementById('mode-screen').classList.add('hidden');
+    document.getElementById('tutorial-screen').classList.remove('hidden');
+    goToPage(0);
+  });
+
+  // Show tutorial on first ever launch, otherwise go straight to mode screen
+  if (!localStorage.getItem('planet_crush_tutorial_done')) {
+    document.getElementById('tutorial-screen').classList.remove('hidden');
+    document.getElementById('mode-screen').classList.add('hidden');
+    buildSwapDiagram();
+  }
+})();
 </script>
 <script>
 if ("serviceWorker" in navigator) {
