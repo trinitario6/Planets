@@ -266,7 +266,76 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 .ov-btn.primary { background:linear-gradient(135deg,#2563eb,#7eb8ff); color:#fff; box-shadow:0 4px 20px rgba(126,184,255,0.4); }
 .ov-btn.secondary { background:rgba(255,255,255,0.08); color:#aaa; border:1px solid rgba(255,255,255,0.15); }
 
-/* ── Mode select ── */
+/* ── Tutorial screen ── */
+#tutorial-screen {
+  display:flex; position:fixed; inset:0;
+  background:#060818; z-index:500;
+  flex-direction:column; align-items:center; justify-content:space-between;
+  padding:20px 20px 28px;
+}
+#tutorial-screen.hidden { display:none; }
+
+#tut-pages { flex:1; width:100%; overflow:hidden; position:relative; }
+.tut-page {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  gap:10px; padding:0 4px;
+  opacity:0; pointer-events:none; transform:translateX(60px);
+  transition:opacity 0.3s ease, transform 0.3s ease;
+  overflow-y:auto;
+}
+.tut-page.active { opacity:1; pointer-events:all; transform:translateX(0); }
+.tut-page.exit   { opacity:0; transform:translateX(-60px); }
+
+.tut-title {
+  font-size:20px; font-weight:900; letter-spacing:3px; text-transform:uppercase;
+  background:linear-gradient(135deg,#ffd700,#7eb8ff,#c084fc);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  text-align:center; margin-bottom:4px;
+}
+.tut-text { font-size:13px; color:#8aaad0; text-align:center; line-height:1.6; max-width:320px; }
+.tut-text strong { color:#c8e0ff; }
+
+/* Planet grid */
+.tut-planet-grid {
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:8px; width:100%; max-width:340px;
+}
+.tut-planet-item {
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+}
+.tut-planet-item svg { width:44px; height:44px; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.6)); }
+.tut-planet-name { font-size:9px; color:#7eb8ff; letter-spacing:1px; text-transform:uppercase; text-align:center; }
+
+/* Specials list */
+.tut-special {
+  display:flex; align-items:center; gap:12px;
+  background:rgba(126,184,255,0.06); border:1px solid rgba(126,184,255,0.1);
+  border-radius:14px; padding:10px 14px; width:100%; max-width:340px;
+}
+.tut-special svg { width:44px; height:44px; flex-shrink:0; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.6)); }
+.tut-special-info { flex:1; }
+.tut-special-name { font-size:13px; font-weight:800; color:#fff; margin-bottom:2px; }
+.tut-special-how  { font-size:10px; color:#7eb8ff; margin-bottom:3px; letter-spacing:0.5px; }
+.tut-special-desc { font-size:11px; color:#8aaad0; line-height:1.4; }
+
+/* Dots + nav */
+#tut-dots { display:flex; gap:7px; margin:10px 0 4px; }
+.tut-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:rgba(126,184,255,0.2); border:1px solid rgba(126,184,255,0.3);
+  transition:all 0.2s;
+}
+.tut-dot.active { background:#7eb8ff; box-shadow:0 0 6px #7eb8ff; }
+
+#tut-nav { display:flex; gap:12px; width:100%; max-width:340px; }
+#tut-next { flex:1; }
+#tut-skip {
+  background:none; border:none; color:#4a6a9a; font-size:13px;
+  cursor:pointer; padding:8px 16px; border-radius:20px;
+  border:1px solid rgba(126,184,255,0.12);
+}
+
 #mode-screen {
   display:flex; position:fixed; inset:0;
   background:#060818; z-index:400;
@@ -297,6 +366,13 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 .mode-btn .micon  { font-size:34px; line-height:1; }
 .mode-btn .mlabel { font-size:20px; font-weight:900; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,0.4); }
 .mode-btn .mdesc  { font-size:11px; color:rgba(255,255,255,0.8); text-align:center; line-height:1.4; }
+#btn-how-to-play {
+  background:none; border:1px solid rgba(126,184,255,0.25);
+  border-radius:20px; color:#7eb8ff; font-size:14px;
+  padding:10px 28px; cursor:pointer; letter-spacing:1px;
+  transition:background 0.15s;
+}
+#btn-how-to-play:active { background:rgba(126,184,255,0.1); }
 </style>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -342,7 +418,79 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
   </div>
 </div>
 
-<div id="mode-screen">
+<div id="tutorial-screen" class="hidden">
+  <div class="ms-title" style="margin-bottom:4px">How to Play</div>
+
+  <div id="tut-pages">
+
+    <!-- Page 1: Objective -->
+    <div class="tut-page active" id="tut-p0">
+      <div class="tut-title">🎯 Mission Briefing</div>
+      <div class="tut-text">
+        <strong>Swap</strong> adjacent planets to line up 3 or more of the same kind.<br><br>
+        Matched planets vanish, the board refills from above, and chain reactions earn bonus points.<br><br>
+        Reach the <strong>sector score target</strong> before your moves run out to advance to the next sector.<br><br>
+        <strong>Swipe</strong> a planet to swap it, or <strong>tap</strong> two planets in a row to swap them.
+      </div>
+      <svg viewBox="0 0 200 60" style="width:200px;height:60px;margin-top:6px">
+        <!-- Arrow showing a swap -->
+        <circle cx="30" cy="30" r="22" fill="#7c3aed" opacity="0.9"/>
+        <circle cx="30" cy="30" r="22" fill="url(#pg1)" opacity="0.8"/>
+        <defs><radialGradient id="pg1" cx="38%" cy="32%" r="60%"><stop offset="0%" stop-color="#e9d5ff"/><stop offset="100%" stop-color="#4c1d95"/></radialGradient></defs>
+        <circle cx="100" cy="30" r="22" fill="#dc2626" opacity="0.9"/>
+        <defs><radialGradient id="pg2" cx="38%" cy="32%" r="60%"><stop offset="0%" stop-color="#fca5a5"/><stop offset="100%" stop-color="#7f1d1d"/></radialGradient></defs>
+        <circle cx="100" cy="30" r="22" fill="url(#pg2)" opacity="0.8"/>
+        <circle cx="170" cy="30" r="22" fill="#7c3aed" opacity="0.9"/>
+        <circle cx="170" cy="30" r="22" fill="url(#pg1)" opacity="0.8"/>
+        <!-- swap arrows -->
+        <path d="M58 22 Q80 10 92 22" stroke="#ffd700" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+        <path d="M92 38 Q80 50 58 38" stroke="#ffd700" stroke-width="2" fill="none" marker-end="url(#arr2)"/>
+        <defs>
+          <marker id="arr"  markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6Z" fill="#ffd700"/></marker>
+          <marker id="arr2" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto"><path d="M6,0 L0,3 L6,6Z" fill="#ffd700"/></marker>
+        </defs>
+      </svg>
+    </div>
+
+    <!-- Page 2: Planets -->
+    <div class="tut-page" id="tut-p1">
+      <div class="tut-title">🌍 The Planets</div>
+      <div class="tut-text" style="margin-bottom:4px">8 planets roam the board — match 3 or more of the same type.</div>
+      <div class="tut-planet-grid" id="tut-planet-grid"></div>
+    </div>
+
+    <!-- Page 3: Specials -->
+    <div class="tut-page" id="tut-p2">
+      <div class="tut-title">✨ Special Gems</div>
+      <div class="tut-text" style="margin-bottom:6px">Bigger matches create powerful special gems.</div>
+
+      <div class="tut-special" id="tut-sp-pulsar"></div>
+      <div class="tut-special" id="tut-sp-blackhole"></div>
+      <div class="tut-special" id="tut-sp-quantum"></div>
+      <div class="tut-special" style="background:rgba(255,215,0,0.06);border-color:rgba(255,215,0,0.15);">
+        <div style="font-size:28px;flex-shrink:0">⭐🌑</div>
+        <div class="tut-special-info">
+          <div class="tut-special-name">Special + Special</div>
+          <div class="tut-special-how">Swap any two specials together</div>
+          <div class="tut-special-desc">Always fires a <strong style="color:#ffd700">Pulsar blast</strong> through both — wiping two full rows and two full columns at once!</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="tut-dots">
+    <div class="tut-dot active"></div>
+    <div class="tut-dot"></div>
+    <div class="tut-dot"></div>
+  </div>
+
+  <div id="tut-nav">
+    <button class="ov-btn primary" id="tut-next">Next →</button>
+    <button id="tut-skip">Skip</button>
+  </div>
+</div>
+<div id="mode-screen" class="hidden">
   <div class="ms-title">Planet Crush!</div>
   <div class="ms-planets">🌍 🪐 ☀️ 🌕 🔴 🟡</div>
   <div class="ms-sub">Choose your mission</div>
@@ -356,6 +504,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
     <span class="mlabel">Commander</span>
     <span class="mdesc">Fewer moves · Harder targets<br>For seasoned space veterans!</span>
   </button>
+  <button id="btn-how-to-play">📖 How to Play</button>
 </div>
 
 <script>
@@ -1606,6 +1755,91 @@ document.getElementById('go-restart').addEventListener('click', () => {
 
 window.addEventListener('resize', () => { setResponsiveSize(); renderBoard(); });
 setResponsiveSize();
+
+// ═══ TUTORIAL ════════════════════════════════════════════════════════════════
+(function initTutorial() {
+  const PLANET_NAMES = ['Mercury','Venus','Earth','Mars','Jupiter','Saturn','Uranus','Neptune'];
+
+  // Build planet grid on page 2
+  function buildPlanetGrid() {
+    const grid = document.getElementById('tut-planet-grid');
+    if (!grid || grid.children.length > 0) return;
+    PLANET_NAMES.forEach((name, i) => {
+      const item = document.createElement('div');
+      item.className = 'tut-planet-item';
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 40 40');
+      svg.innerHTML = PLANET_SVG[i]();
+      const label = document.createElement('div');
+      label.className = 'tut-planet-name';
+      label.textContent = name;
+      item.appendChild(svg); item.appendChild(label);
+      grid.appendChild(item);
+    });
+  }
+
+  // Build special cards on page 3
+  function buildSpecials() {
+    const specDefs = [
+      { id:'tut-sp-pulsar',    svg: SPECIAL_SVG['pulsar'],       name:'⭐ Pulsar',        how:'Match 4 in a row',         desc:'Wipes the entire row and column it sits on — a cross blast across the board.' },
+      { id:'tut-sp-blackhole', svg: SPECIAL_SVG['black-hole'],   name:'🌑 Black Hole',    how:'Match 5 or more in a row', desc:'Explodes the 3×3 area around it, destroying up to 9 nearby planets.' },
+      { id:'tut-sp-quantum',   svg: SPECIAL_SVG['quantum-bomb'], name:'⚛️ Quantum Bomb',  how:'Match an L or T shape',    desc:'Destroys every planet of the same type across the whole board — quantum entanglement!' },
+    ];
+    specDefs.forEach(({ id, svg, name, how, desc }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const svgEl = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svgEl.setAttribute('viewBox','0 0 40 40');
+      svgEl.innerHTML = svg();
+      const info = document.createElement('div');
+      info.className = 'tut-special-info';
+      info.innerHTML = `<div class="tut-special-name">${name}</div><div class="tut-special-how">${how}</div><div class="tut-special-desc">${desc}</div>`;
+      el.appendChild(svgEl); el.appendChild(info);
+    });
+  }
+
+  let tutPage = 0;
+  const pages = document.querySelectorAll('.tut-page');
+  const dots  = document.querySelectorAll('.tut-dot');
+  const totalPages = pages.length;
+
+  function goToPage(n) {
+    pages[tutPage].classList.remove('active');
+    pages[tutPage].classList.add('exit');
+    setTimeout(() => pages[tutPage < n ? tutPage : n].classList.remove('exit'), 300);
+    tutPage = n;
+    pages[tutPage].classList.add('active');
+    dots.forEach((d,i) => d.classList.toggle('active', i === tutPage));
+    document.getElementById('tut-next').textContent = tutPage === totalPages-1 ? "Let's Go! 🚀" : 'Next →';
+    if (tutPage === 1) buildPlanetGrid();
+    if (tutPage === 2) buildSpecials();
+  }
+
+  function closeTutorial() {
+    document.getElementById('tutorial-screen').classList.add('hidden');
+    document.getElementById('mode-screen').classList.remove('hidden');
+    localStorage.setItem('planet_crush_tutorial_done', '1');
+  }
+
+  document.getElementById('tut-next').addEventListener('click', () => {
+    if (tutPage < totalPages - 1) goToPage(tutPage + 1);
+    else closeTutorial();
+  });
+  document.getElementById('tut-skip').addEventListener('click', closeTutorial);
+
+  // How to Play button on mode screen — reopen tutorial from page 1
+  document.getElementById('btn-how-to-play').addEventListener('click', () => {
+    document.getElementById('mode-screen').classList.add('hidden');
+    document.getElementById('tutorial-screen').classList.remove('hidden');
+    goToPage(0);
+  });
+
+  // Show tutorial on first ever launch, otherwise go straight to mode screen
+  if (!localStorage.getItem('planet_crush_tutorial_done')) {
+    document.getElementById('tutorial-screen').classList.remove('hidden');
+    document.getElementById('mode-screen').classList.add('hidden');
+  }
+})();
 </script>
 <script>
 if ("serviceWorker" in navigator) {
