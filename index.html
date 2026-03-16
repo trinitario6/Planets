@@ -349,22 +349,6 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
   -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
   text-align:center;
 }
-#ms-gem-grid {
-  display:grid;
-  grid-template-columns: repeat(8, 36px);
-  grid-template-rows: repeat(2, 36px);
-  gap:4px;
-}
-#ms-gem-grid .ms-gem {
-  width:36px; height:36px;
-  animation: msFloat var(--f,3s) ease-in-out infinite;
-  animation-delay: var(--fd, 0s);
-}
-#ms-gem-grid .ms-gem svg { width:100%; height:100%; display:block; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5)); }
-@keyframes msFloat {
-  0%,100% { transform:translateY(0); }
-  50%      { transform:translateY(-5px); }
-}
 .ms-sub { font-size:13px; color:#4a6a9a; text-align:center; margin-top:-8px; }
 .mode-btn {
   width:100%; max-width:280px; padding:18px 22px;
@@ -444,24 +428,9 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
         Reach the <strong>sector score target</strong> before your moves run out to advance to the next sector.<br><br>
         <strong>Swipe</strong> a planet to swap it, or <strong>tap</strong> two planets in a row to swap them.
       </div>
-      <svg viewBox="0 0 200 60" style="width:200px;height:60px;margin-top:6px">
-        <!-- Arrow showing a swap -->
-        <circle cx="30" cy="30" r="22" fill="#7c3aed" opacity="0.9"/>
-        <circle cx="30" cy="30" r="22" fill="url(#pg1)" opacity="0.8"/>
-        <defs><radialGradient id="pg1" cx="38%" cy="32%" r="60%"><stop offset="0%" stop-color="#e9d5ff"/><stop offset="100%" stop-color="#4c1d95"/></radialGradient></defs>
-        <circle cx="100" cy="30" r="22" fill="#dc2626" opacity="0.9"/>
-        <defs><radialGradient id="pg2" cx="38%" cy="32%" r="60%"><stop offset="0%" stop-color="#fca5a5"/><stop offset="100%" stop-color="#7f1d1d"/></radialGradient></defs>
-        <circle cx="100" cy="30" r="22" fill="url(#pg2)" opacity="0.8"/>
-        <circle cx="170" cy="30" r="22" fill="#7c3aed" opacity="0.9"/>
-        <circle cx="170" cy="30" r="22" fill="url(#pg1)" opacity="0.8"/>
-        <!-- swap arrows -->
-        <path d="M58 22 Q80 10 92 22" stroke="#ffd700" stroke-width="2" fill="none" marker-end="url(#arr)"/>
-        <path d="M92 38 Q80 50 58 38" stroke="#ffd700" stroke-width="2" fill="none" marker-end="url(#arr2)"/>
-        <defs>
-          <marker id="arr"  markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6Z" fill="#ffd700"/></marker>
-          <marker id="arr2" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto"><path d="M6,0 L0,3 L6,6Z" fill="#ffd700"/></marker>
-        </defs>
-      </svg>
+      <div id="tut-swap-diagram" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;">
+        <!-- populated by JS with real planet SVGs -->
+      </div>
     </div>
 
     <!-- Page 2: Planets -->
@@ -502,9 +471,8 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
     <button id="tut-skip">Skip</button>
   </div>
 </div>
-<div id="mode-screen" class="hidden">
+<div id="mode-screen">
   <div class="ms-title">Planet Crush!</div>
-  <div id="ms-gem-grid"></div>
   <div class="ms-sub">Choose your mission</div>
   <button class="mode-btn mode-btn-kid" id="btn-kid">
     <span class="micon">🌍</span>
@@ -1758,43 +1726,102 @@ function setResponsiveSize() {
 }
 
 // ═══ WIRING ═══════════════════════════════════════════════════════════════════
-// ── Mode screen gem grid ───────────────────────────────────────────────────
-(function buildMsGemGrid() {
-  const grid = document.getElementById('ms-gem-grid');
-  if (!grid) return;
-  const COLS_G = 8, ROWS_G = 2;
-  // Shuffle all 8 planet types across 16 cells (each type appears twice)
-  const types = [...Array(PLANET_TYPES)].flatMap((_, i) => [i, i]);
-  types.sort(() => Math.random() - 0.5);
-  types.forEach((type, i) => {
-    const cell = document.createElement('div');
-    cell.className = 'ms-gem';
-    const dur  = (2.5 + Math.random() * 2).toFixed(1) + 's';
-    const delay= (Math.random() * 2).toFixed(2) + 's';
-    cell.style.setProperty('--f',  dur);
-    cell.style.setProperty('--fd', delay);
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 40 40');
-    svg.innerHTML = PLANET_SVG[type]();
-    cell.appendChild(svg);
-    grid.appendChild(cell);
-  });
-})();
-
 document.getElementById('btn-kid').addEventListener('click',    () => startGame('kid'));
 document.getElementById('btn-adult').addEventListener('click',  () => startGame('adult'));
 document.getElementById('lc-next').addEventListener('click',    nextLevel);
 document.getElementById('go-restart').addEventListener('click', () => {
   document.getElementById('game-over').classList.remove('show');
+  document.getElementById('app').classList.add('hidden');
   document.getElementById('mode-screen').classList.remove('hidden');
 });
 
-window.addEventListener('resize', () => { setResponsiveSize(); renderBoard(); });
+window.addEventListener('resize', () => {
+  setResponsiveSize();
+  if (!document.getElementById('app').classList.contains('hidden')) renderBoard();
+});
 setResponsiveSize();
 
 // ═══ TUTORIAL ════════════════════════════════════════════════════════════════
 (function initTutorial() {
   const PLANET_NAMES = ['Mercury','Venus','Earth','Mars','Jupiter','Saturn','Uranus','Neptune'];
+
+  // Build swap diagram on page 1 using real planet SVGs
+  function buildSwapDiagram() {
+    const wrap = document.getElementById('tut-swap-diagram');
+    if (!wrap || wrap.children.length > 0) return;
+
+    function makePlanetCell(type, size=52) {
+      const div = document.createElement('div');
+      div.style.cssText = `width:${size}px;height:${size}px;flex-shrink:0;`;
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 40 40');
+      svg.style.cssText = 'width:100%;height:100%;display:block;filter:drop-shadow(0 3px 8px rgba(0,0,0,0.5));';
+      svg.innerHTML = PLANET_SVG[type]();
+      div.appendChild(svg);
+      return div;
+    }
+
+    function makeArrows() {
+      // Double-headed swap arrows in SVG
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 48 52');
+      svg.style.cssText = 'width:40px;height:52px;flex-shrink:0;';
+      svg.innerHTML = `
+        <defs>
+          <marker id="ta1" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6Z" fill="#ffd700"/>
+          </marker>
+          <marker id="ta2" markerWidth="6" markerHeight="6" refX="1" refY="3" orient="auto">
+            <path d="M6,0 L0,3 L6,6Z" fill="#ffd700"/>
+          </marker>
+        </defs>
+        <path d="M4 18 Q24 6 44 18" stroke="#ffd700" stroke-width="2.2" fill="none"
+              stroke-linecap="round" marker-end="url(#ta1)"/>
+        <path d="M44 34 Q24 46 4 34" stroke="#ffd700" stroke-width="2.2" fill="none"
+              stroke-linecap="round" marker-end="url(#ta2)"/>`;
+      return svg;
+    }
+
+    // Before: Earth · Mars · Earth  →  After: Mars · Earth · Earth
+    // Show "before" row, arrows, "after" row stacked vertically
+    const beforeLabel = document.createElement('div');
+    beforeLabel.style.cssText = 'font-size:10px;color:#4a6a9a;letter-spacing:1px;text-transform:uppercase;width:100%;text-align:center;';
+    beforeLabel.textContent = 'Before';
+
+    const beforeRow = document.createElement('div');
+    beforeRow.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    beforeRow.appendChild(makePlanetCell(2)); // Earth
+    beforeRow.appendChild(makePlanetCell(3)); // Mars
+    beforeRow.appendChild(makePlanetCell(2)); // Earth
+
+    const arrowRow = document.createElement('div');
+    arrowRow.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:6px;';
+    // Arrow centred between planet 1 and 2
+    const spacer1 = document.createElement('div');
+    spacer1.style.cssText = 'width:52px;flex-shrink:0;';
+    const spacer2 = document.createElement('div');
+    spacer2.style.cssText = 'width:52px;flex-shrink:0;';
+    arrowRow.appendChild(spacer1);
+    arrowRow.appendChild(makeArrows());
+    arrowRow.appendChild(spacer2);
+
+    const afterLabel = document.createElement('div');
+    afterLabel.style.cssText = 'font-size:10px;color:#4a6a9a;letter-spacing:1px;text-transform:uppercase;width:100%;text-align:center;';
+    afterLabel.textContent = 'After';
+
+    const afterRow = document.createElement('div');
+    afterRow.style.cssText = 'display:flex;align-items:center;gap:6px;';
+    afterRow.appendChild(makePlanetCell(3)); // Mars
+    afterRow.appendChild(makePlanetCell(2)); // Earth
+    afterRow.appendChild(makePlanetCell(2)); // Earth
+
+    wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:8px;';
+    wrap.appendChild(beforeLabel);
+    wrap.appendChild(beforeRow);
+    wrap.appendChild(arrowRow);
+    wrap.appendChild(afterLabel);
+    wrap.appendChild(afterRow);
+  }
 
   // Build planet grid on page 2
   function buildPlanetGrid() {
@@ -1847,6 +1874,7 @@ setResponsiveSize();
     pages[tutPage].classList.add('active');
     dots.forEach((d,i) => d.classList.toggle('active', i === tutPage));
     document.getElementById('tut-next').textContent = tutPage === totalPages-1 ? "Let's Go! 🚀" : 'Next →';
+    if (tutPage === 0) buildSwapDiagram();
     if (tutPage === 1) buildPlanetGrid();
     if (tutPage === 2) buildSpecials();
   }
@@ -1874,6 +1902,7 @@ setResponsiveSize();
   if (!localStorage.getItem('planet_crush_tutorial_done')) {
     document.getElementById('tutorial-screen').classList.remove('hidden');
     document.getElementById('mode-screen').classList.add('hidden');
+    buildSwapDiagram();
   }
 })();
 </script>
