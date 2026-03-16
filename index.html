@@ -975,50 +975,59 @@ async function handleSwap(r1, c1, r2, c2) {
 // Returns { matched: Set of "r,c", specials: Map of "r,c" -> special type }
 function findMatches() {
   const matched  = new Set();
-  const specials = new Map(); // cells that should become a special gem
+  const specials = new Map();
 
   function processRun(cells, runType) {
-    if (cells.length < 3) return;
+    if (cells.length < 3 || runType === undefined || runType === null) return;
     cells.forEach(k => matched.add(k));
-    // 5+ in a row → Black Hole at centre
     if (cells.length >= 5) {
-      const mid = cells[Math.floor(cells.length / 2)];
-      specials.set(mid, { type: runType, special: SPECIAL_BLACK_HOLE });
-    }
-    // Exactly 4 in a row → Pulsar at centre
-    else if (cells.length === 4) {
-      const mid = cells[1];
-      specials.set(mid, { type: runType, special: SPECIAL_PULSAR });
+      specials.set(cells[Math.floor(cells.length / 2)], { type: runType, special: SPECIAL_BLACK_HOLE });
+    } else if (cells.length === 4) {
+      specials.set(cells[1], { type: runType, special: SPECIAL_PULSAR });
     }
   }
 
-  // Horizontal runs
+  // Horizontal runs — only start a run when we have a real non-special gem
   for (let r = 0; r < ROWS; r++) {
-    let run = [r + ',' + 0], runType = board[r][0]?.type;
-    for (let c = 1; c <= COLS; c++) {
-      const gem = c < COLS ? board[r][c] : null;
-      if (gem && !gem.special && gem.type === runType && !board[r][c-1]?.special) {
-        run.push(r + ',' + c);
+    let run = [], runType = null;
+    for (let c = 0; c < COLS; c++) {
+      const gem = board[r][c];
+      if (gem && !gem.special) {
+        if (gem.type === runType) {
+          run.push(r + ',' + c);
+        } else {
+          processRun(run, runType);
+          run = [r + ',' + c];
+          runType = gem.type;
+        }
       } else {
+        // null or special cell — end current run
         processRun(run, runType);
-        run = c < COLS ? [r + ',' + c] : [];
-        runType = gem?.type;
+        run = []; runType = null;
       }
     }
+    processRun(run, runType);
   }
+
   // Vertical runs
   for (let c = 0; c < COLS; c++) {
-    let run = [0 + ',' + c], runType = board[0][c]?.type;
-    for (let r = 1; r <= ROWS; r++) {
-      const gem = r < ROWS ? board[r][c] : null;
-      if (gem && !gem.special && gem.type === runType && !board[r-1][c]?.special) {
-        run.push(r + ',' + c);
+    let run = [], runType = null;
+    for (let r = 0; r < ROWS; r++) {
+      const gem = board[r][c];
+      if (gem && !gem.special) {
+        if (gem.type === runType) {
+          run.push(r + ',' + c);
+        } else {
+          processRun(run, runType);
+          run = [r + ',' + c];
+          runType = gem.type;
+        }
       } else {
         processRun(run, runType);
-        run = r < ROWS ? [r + ',' + c] : [];
-        runType = gem?.type;
+        run = []; runType = null;
       }
     }
+    processRun(run, runType);
   }
 
   return { matched, specials };
