@@ -205,10 +205,10 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 @keyframes shakeLg  { 0%,100%{transform:translate(0,0);} 10%{transform:translate(-10px,4px) rotate(-1deg);} 30%{transform:translate(10px,-4px) rotate(1deg);} 50%{transform:translate(-8px,3px) rotate(-0.5deg);} 70%{transform:translate(8px,-3px) rotate(0.5deg);} 90%{transform:translate(-4px,1px);} }
 @keyframes shakeEpic{ 0%,100%{transform:translate(0,0) scale(1);} 8%{transform:translate(-14px,6px) rotate(-2deg) scale(1.02);} 20%{transform:translate(14px,-6px) rotate(2deg) scale(0.98);} 35%{transform:translate(-10px,5px) rotate(-1.5deg);} 50%{transform:translate(12px,-4px) rotate(1.5deg);} 65%{transform:translate(-8px,3px) rotate(-1deg);} 80%{transform:translate(7px,-2px);} }
 
-/* ── Special gems ── */
+/* ── Special objects ── */
 .cell.special-black-hole svg { filter: drop-shadow(0 0 10px rgba(180,0,255,0.9))  drop-shadow(0 0 20px rgba(100,0,200,0.7))  !important; }
 .cell.special-pulsar svg     { filter: drop-shadow(0 0 10px rgba(255,200,50,0.9))  drop-shadow(0 0 20px rgba(255,150,0,0.7))  !important; }
-.cell.special-quantum-bomb svg { filter: drop-shadow(0 0 10px rgba(255,255,255,0.95)) drop-shadow(0 0 20px rgba(100,200,255,0.8)) !important; }
+.cell.special-quantum-explosion svg { filter: drop-shadow(0 0 10px rgba(255,255,255,0.95)) drop-shadow(0 0 20px rgba(100,200,255,0.8)) !important; }
 
 /* ── Moves display ── */
 #moves-wrap { width:100%; display:flex; align-items:center; justify-content:center; gap:6px; }
@@ -442,8 +442,8 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 
     <!-- Page 3: Specials -->
     <div class="tut-page" id="tut-p2">
-      <div class="tut-title">✨ Special Gems</div>
-      <div class="tut-text" style="margin-bottom:6px">Bigger matches create powerful special gems.</div>
+      <div class="tut-title">✨ Special Objects</div>
+      <div class="tut-text" style="margin-bottom:6px">Bigger matches create powerful special objects.</div>
 
       <div class="tut-special" id="tut-sp-pulsar"></div>
       <div class="tut-special" id="tut-sp-blackhole"></div>
@@ -621,7 +621,7 @@ function soundLevelUp() {
   noise(0.15, 0.12, 1200, 0.3);
 }
 
-// Special gem activation: sci-fi zap
+// Special object activation: sci-fi zap
 function soundSpecial() {
   tone(1200, 0.08, 0.28, 'square', 0);
   tone(800,  0.12, 0.22, 'square', 0.05);
@@ -637,10 +637,10 @@ document.getElementById('mute-btn').addEventListener('click', () => {
 // ═══ GAME CONSTANTS ═══════════════════════════════════════════════════════════
 const COLS = 8, ROWS = 10;
 const PLANET_TYPES = 8;
-// Special gem types
+// Special object types
 const SPECIAL_PULSAR     = 'pulsar';      // match 4 → wipes full row + column
 const SPECIAL_BLACK_HOLE = 'black-hole';  // match 5 → explodes 3×3 area
-const SPECIAL_QUANTUM_BOMB = 'quantum-bomb';  // match L/T shape → removes ALL of one planet type
+const SPECIAL_QUANTUM_EXPLOSION = 'quantum-explosion';  // match L/T shape → removes ALL of one planet type
 
 const LEVEL_TARGETS = [2000, 5000, 10000, 18000, 30000, 46000, 65000, 88000, 115000, 147000];
 const BASE_MOVES = { kid: 30, adult: 20 };
@@ -678,10 +678,10 @@ function initBoard() {
     [
       SPECIAL_PULSAR, SPECIAL_PULSAR, SPECIAL_PULSAR,
       SPECIAL_BLACK_HOLE, SPECIAL_BLACK_HOLE,
-      SPECIAL_QUANTUM_BOMB,
+      SPECIAL_QUANTUM_EXPLOSION,
     ].forEach((sp, i) => {
       const [r, c] = allCells[i];
-      // Keep the planet's type so Quantum Bomb knows what to clear when swapped
+      // Keep the planet's type so Quantum Explosion knows what to clear when swapped
       board[r][c] = { type: board[r][c].type, special: sp };
     });
   }
@@ -932,7 +932,7 @@ function makeCell(r, c) {
     svg.setAttribute('viewBox', '0 0 40 40');
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     if (planet.special) {
-      // Specials are their own standalone gem — no planet underneath
+      // Specials are their own standalone object — no planet underneath
       div.classList.add('gem', 'special-' + planet.special);
       svg.innerHTML = SPECIAL_SVG[planet.special]();
     } else {
@@ -945,7 +945,7 @@ function makeCell(r, c) {
   return div;
 }
 
-// Standalone SVG designs for special gems (no planet underneath)
+// Standalone SVG designs for special objects — no planet underneath
 const SPECIAL_SVG = {
   // ⭐ Pulsar — gold 8-point star, explodes 3×3
   'pulsar': () => `
@@ -988,8 +988,8 @@ const SPECIAL_SVG = {
     <line x1="20" y1="2" x2="20" y2="38" stroke="#a78bfa" stroke-width="0.6" opacity="0.35"/>
     <line x1="2" y1="20" x2="38" y2="20" stroke="#a78bfa" stroke-width="0.6" opacity="0.35"/>`,
 
-  // 🌈 Quantum Bomb — rainbow swirl, removes all of one type
-  'quantum-bomb': () => `
+  // 🌈 Quantum Explosion — rainbow swirl, removes all of one type
+  'quantum-explosion': () => `
     <defs><radialGradient id="cbg" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#1a1a2e"/>
       <stop offset="100%" stop-color="#0d0d1a"/>
@@ -1221,7 +1221,7 @@ async function handleSwap(r1, c1, r2, c2) {
       }
       showPopup('⭐ PULSAR BLAST!');
       soundSpecial();
-    } else if (special.special === SPECIAL_QUANTUM_BOMB) {
+    } else if (special.special === SPECIAL_QUANTUM_EXPLOSION) {
       // Destroy all planets of the target's type on the board
       const targetType = target.type;
       for (let r = 0; r < ROWS; r++)
@@ -1229,7 +1229,7 @@ async function handleSwap(r1, c1, r2, c2) {
           if (board[r][c] && !board[r][c].special && board[r][c].type === targetType) blastCells.add(r + ',' + c);
       // Also remove the special itself
       blastCells.add(specialPos.r + ',' + specialPos.c);
-      showPopup('⚛️ QUANTUM BOMB!');
+      showPopup('💥 QUANTUM EXPLOSION!');
       soundSpecial();
     } else if (special.special === SPECIAL_BLACK_HOLE) {
       // Blast 3×3 area centred on where the Black Hole LANDS after the swap
@@ -1332,7 +1332,7 @@ function findMatches() {
     }
   }
 
-  // Horizontal runs — only start a run when we have a real non-special gem
+  // Horizontal runs — only start a run when we have a real non-special object
   for (let r = 0; r < ROWS; r++) {
     let run = [], runType = null;
     for (let c = 0; c < COLS; c++) {
@@ -1375,7 +1375,7 @@ function findMatches() {
     processRun(run, runType);
   }
 
-  // L/T shape detection → Quantum Bomb (remove all of that type)
+  // L/T shape detection → Quantum Explosion (remove all of that type)
   // Look for any cell that appears in both a horizontal AND vertical match-run
   const hMatched = new Set(), vMatched = new Set();
   for (let r = 0; r < ROWS; r++) {
@@ -1400,13 +1400,13 @@ function findMatches() {
     }
     if (run.length >= 3) run.forEach(k => vMatched.add(k));
   }
-  // Intersection cells (L/T/+ shapes) become quantum bombs
+  // Intersection cells (L/T/+ shapes) become quantum explosions
   hMatched.forEach(k => {
     if (vMatched.has(k)) {
       const [r,c] = k.split(',').map(Number);
       const gem = board[r][c];
       if (gem && !gem.special && !specials.has(k)) {
-        specials.set(k, { type: gem.type, special: SPECIAL_QUANTUM_BOMB });
+        specials.set(k, { type: gem.type, special: SPECIAL_QUANTUM_EXPLOSION });
       }
     }
   });
@@ -1439,7 +1439,7 @@ async function resolveMatches(matches, specials) {
 
     // Check if any matched cell is itself a special (shouldn't normally happen
     // since specials are activated by swapping, but clean up any that land in matches)
-    // ── Fire special gem effects ──────────────────────────────────────────────
+    // ── Fire special object effects ──────────────────────────────────────────────
     const extraCells = new Set();
     matches.forEach(key => {
       const [r, c] = key.split(',').map(Number);
@@ -1461,7 +1461,7 @@ async function resolveMatches(matches, specials) {
         for (let rr = 0; rr < ROWS; rr++) extraCells.add(rr + ',' + c);
         showPopup('⭐ PULSAR BLAST!');
         soundSpecial();
-      } else if (gem.special === SPECIAL_QUANTUM_BOMB) {
+      } else if (gem.special === SPECIAL_QUANTUM_EXPLOSION) {
         // Find the most common planet type on the board to clear
         const typeCounts = new Array(PLANET_TYPES).fill(0);
         for (let rr = 0; rr < ROWS; rr++)
@@ -1471,7 +1471,7 @@ async function resolveMatches(matches, specials) {
         for (let rr = 0; rr < ROWS; rr++)
           for (let cc = 0; cc < COLS; cc++)
             if (board[rr][cc] && !board[rr][cc].special && board[rr][cc].type === targetType) extraCells.add(rr+','+cc);
-        showPopup('⚛️ QUANTUM BOMB!');
+        showPopup('💥 QUANTUM EXPLOSION!');
         soundSpecial();
       }
     });
@@ -1624,7 +1624,7 @@ function checkGameState() {
 }
 
 function hasValidMove() {
-  // Any special gem on the board can always be activated by swapping with a neighbour
+  // Any special object on the board can always be activated by swapping with a neighbour
   for (let r = 0; r < ROWS; r++)
     for (let c = 0; c < COLS; c++)
       if (board[r][c]?.special) return true;
@@ -1846,7 +1846,7 @@ setResponsiveSize();
     const specDefs = [
       { id:'tut-sp-pulsar',    svg: SPECIAL_SVG['pulsar'],       name:'⭐ Pulsar',        how:'Match 4 in a row',         desc:'Wipes the entire row and column it sits on — a cross blast across the board.' },
       { id:'tut-sp-blackhole', svg: SPECIAL_SVG['black-hole'],   name:'🌑 Black Hole',    how:'Match 5 or more in a row', desc:'Explodes the 3×3 area around it, destroying up to 9 nearby planets.' },
-      { id:'tut-sp-quantum',   svg: SPECIAL_SVG['quantum-bomb'], name:'⚛️ Quantum Bomb',  how:'Match an L or T shape',    desc:'Destroys every planet of the same type across the whole board — quantum entanglement!' },
+      { id:'tut-sp-quantum',   svg: SPECIAL_SVG['quantum-explosion'], name:'💥 Quantum Explosion',  how:'Match an L or T shape',    desc:'Destroys every planet of the same type across the whole board — quantum entanglement!' },
     ];
     specDefs.forEach(({ id, svg, name, how, desc }) => {
       const el = document.getElementById(id);
