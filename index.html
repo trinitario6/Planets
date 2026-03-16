@@ -551,7 +551,9 @@ function initBoard() {
       SPECIAL_BLACK_HOLE, SPECIAL_BLACK_HOLE,
       SPECIAL_COLOR_BOMB,
     ].forEach((sp, i) => {
-      board[allCells[i][0]][allCells[i][1]].special = sp;
+      const [r, c] = allCells[i];
+      // Keep the planet's type so Color Bomb knows what to clear when swapped
+      board[r][c] = { type: board[r][c].type, special: sp };
     });
   }
 }
@@ -797,49 +799,84 @@ function makeCell(r, c) {
   div.className = 'cell';
   const planet = board[r][c];
   if (planet) {
-    div.classList.add('gem', 'p' + planet.type);
-    if (planet.special) div.classList.add('special-' + planet.special);
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 40 40');
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    svg.innerHTML = PLANET_SVG[planet.type]() + SPECIAL_OVERLAY_SVG[planet.special || '']();
+    if (planet.special) {
+      // Specials are their own standalone gem — no planet underneath
+      div.classList.add('gem', 'special-' + planet.special);
+      svg.innerHTML = SPECIAL_SVG[planet.special]();
+    } else {
+      // Normal planet
+      div.classList.add('gem', 'p' + planet.type);
+      svg.innerHTML = PLANET_SVG[planet.type]();
+    }
     div.appendChild(svg);
   }
   return div;
 }
 
-// SVG overlays drawn on top of any planet for special types
-const SPECIAL_OVERLAY_SVG = {
-  '': () => '',
-  // Black Hole: dark vortex — wipes full row + column
-  'black-hole': () => `
-    <circle cx="20" cy="20" r="17" fill="rgba(60,0,120,0.55)"/>
-    <circle cx="20" cy="20" r="10" fill="rgba(20,0,60,0.7)"/>
-    <circle cx="20" cy="20" r="5"  fill="rgba(0,0,20,0.9)"/>
-    <path d="M20 3 Q30 12 28 20 Q26 28 20 30 Q14 32 12 24 Q10 16 20 3Z"
-          fill="none" stroke="rgba(180,100,255,0.8)" stroke-width="1.2"/>
-    <path d="M20 37 Q10 28 12 20 Q14 12 20 10 Q26 8 28 16 Q30 24 20 37Z"
-          fill="none" stroke="rgba(180,100,255,0.6)" stroke-width="0.9"/>
-    <circle cx="20" cy="20" r="2.5" fill="white" opacity="0.9"/>
-    <line x1="20" y1="14" x2="20" y2="26" stroke="white" stroke-width="0.8" opacity="0.7"/>
-    <line x1="14" y1="20" x2="26" y2="20" stroke="white" stroke-width="0.8" opacity="0.7"/>`,
-  // Pulsar: glowing star burst — explodes 3×3 area
+// Standalone SVG designs for special gems (no planet underneath)
+const SPECIAL_SVG = {
+  // ⭐ Pulsar — gold 8-point star, explodes 3×3
   'pulsar': () => `
-    <circle cx="20" cy="20" r="17" fill="rgba(255,200,0,0.25)"/>
-    <polygon points="20,4 22.5,17 36,20 22.5,23 20,36 17.5,23 4,20 17.5,17"
-             fill="rgba(255,230,80,0.9)" stroke="rgba(255,180,0,0.8)" stroke-width="0.8"/>
-    <circle cx="20" cy="20" r="5" fill="rgba(255,255,200,0.95)"/>
-    <circle cx="20" cy="20" r="2.5" fill="white"/>`,
-  // Color Bomb: rainbow swirl — removes all of one planet type
+    <defs><radialGradient id="psg" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#fff7a0"/>
+      <stop offset="50%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </radialGradient></defs>
+    <circle cx="20" cy="20" r="18" fill="#1a0a00" opacity="0.6"/>
+    <!-- outer glow ring -->
+    <circle cx="20" cy="20" r="17" fill="none" stroke="#fbbf24" stroke-width="1" opacity="0.5"/>
+    <!-- 8-point star -->
+    <polygon points="20,3 22.8,15 36,20 22.8,25 20,37 17.2,25 4,20 17.2,15"
+             fill="url(#psg)" stroke="#f59e0b" stroke-width="0.6"/>
+    <!-- inner bright core -->
+    <circle cx="20" cy="20" r="5.5" fill="#fffde7"/>
+    <circle cx="20" cy="20" r="3"   fill="white"/>
+    <!-- sparkle rays -->
+    <line x1="20" y1="10" x2="20" y2="13" stroke="white" stroke-width="1.2" opacity="0.8"/>
+    <line x1="20" y1="27" x2="20" y2="30" stroke="white" stroke-width="1.2" opacity="0.8"/>
+    <line x1="10" y1="20" x2="13" y2="20" stroke="white" stroke-width="1.2" opacity="0.8"/>
+    <line x1="27" y1="20" x2="30" y2="20" stroke="white" stroke-width="1.2" opacity="0.8"/>`,
+
+  // 🌑 Black Hole — swirling dark vortex, wipes row + column
+  'black-hole': () => `
+    <defs><radialGradient id="bhg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e003a"/>
+      <stop offset="60%" stop-color="#3b0070"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </radialGradient></defs>
+    <circle cx="20" cy="20" r="18" fill="url(#bhg)"/>
+    <!-- accretion disc rings -->
+    <ellipse cx="20" cy="20" rx="16" ry="6"  fill="none" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
+    <ellipse cx="20" cy="20" rx="12" ry="4.2" fill="none" stroke="#c4b5fd" stroke-width="1.2" opacity="0.5"/>
+    <ellipse cx="20" cy="20" rx="8"  ry="2.5" fill="none" stroke="#ddd6fe" stroke-width="1"   opacity="0.4"/>
+    <!-- event horizon -->
+    <circle cx="20" cy="20" r="5.5" fill="#0a0015"/>
+    <circle cx="20" cy="20" r="3"   fill="#050008"/>
+    <!-- cross sight lines -->
+    <line x1="20" y1="2" x2="20" y2="38" stroke="#a78bfa" stroke-width="0.6" opacity="0.35"/>
+    <line x1="2" y1="20" x2="38" y2="20" stroke="#a78bfa" stroke-width="0.6" opacity="0.35"/>`,
+
+  // 🌈 Color Bomb — rainbow swirl, removes all of one type
   'color-bomb': () => `
-    <circle cx="20" cy="20" r="17" fill="rgba(0,0,0,0.45)"/>
-    <path d="M20 5 A15 15 0 0 1 35 20" stroke="#ff4444" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <path d="M35 20 A15 15 0 0 1 20 35" stroke="#ff9900" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <path d="M20 35 A15 15 0 0 1 5 20"  stroke="#44ff44" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <path d="M5 20 A15 15 0 0 1 20 5"   stroke="#4488ff" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <circle cx="20" cy="20" r="5.5" fill="rgba(255,255,255,0.95)"/>
-    <circle cx="20" cy="20" r="3"   fill="rgba(200,200,255,0.9)"/>
-    <circle cx="20" cy="20" r="1.2" fill="white"/>`,
+    <defs><radialGradient id="cbg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0d0d1a"/>
+    </radialGradient></defs>
+    <circle cx="20" cy="20" r="18" fill="url(#cbg)"/>
+    <!-- rainbow arc segments -->
+    <path d="M20 5 A15 15 0 0 1 32.99 12.5" stroke="#ff4444" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M32.99 12.5 A15 15 0 0 1 35 20"  stroke="#ff8800" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M35 20 A15 15 0 0 1 27.5 32.99"  stroke="#ffee00" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M27.5 32.99 A15 15 0 0 1 20 35"  stroke="#44dd44" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M20 35 A15 15 0 0 1 5 20"        stroke="#4488ff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M5 20 A15 15 0 0 1 20 5"         stroke="#cc44ff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <!-- bright centre -->
+    <circle cx="20" cy="20" r="6"   fill="white" opacity="0.95"/>
+    <circle cx="20" cy="20" r="3.5" fill="#e0d0ff"/>
+    <circle cx="20" cy="20" r="1.5" fill="white"/>`,
 };
 
 function updateCell(r, c) {
@@ -1033,7 +1070,7 @@ async function handleSwap(r1, c1, r2, c2) {
   const special = gemA.special ? gemA : gemB.special ? gemB : null;
   const target  = gemA.special ? gemB : gemA;
   const specialPos = gemA.special ? { r: r1, c: c1 } : { r: r2, c: c2 };
-  const targetPos  = gemA.special ? { r: r2, c: c2 } : { r: r1, c: c2 };
+  const targetPos  = gemA.special ? { r: r2, c: c2 } : { r: r1, c: c1 };
 
   if (special) {
     // Do the visual swap first
@@ -1046,23 +1083,33 @@ async function handleSwap(r1, c1, r2, c2) {
 
     const blastCells = new Set();
 
-    if (special.special === SPECIAL_COMET) {
-      // Destroy all planets of the target type on the board
+    if (special.special === SPECIAL_COLOR_BOMB) {
+      // Destroy all planets of the target's type on the board
       const targetType = target.type;
       for (let r = 0; r < ROWS; r++)
         for (let c = 0; c < COLS; c++)
-          if (board[r][c] && board[r][c].type === targetType) blastCells.add(r + ',' + c);
+          if (board[r][c] && !board[r][c].special && board[r][c].type === targetType) blastCells.add(r + ',' + c);
       // Also remove the special itself
       blastCells.add(specialPos.r + ',' + specialPos.c);
-      showPopup('☄️ COMET STRIKE!');
+      showPopup('🌈 COLOR BOMB!');
       soundSpecial();
     } else if (special.special === SPECIAL_BLACK_HOLE) {
-      // Wipe entire row + column of the TARGET gem's new position
-      const tr = targetPos.r, tc = targetPos.c;
-      for (let cc = 0; cc < COLS; cc++) blastCells.add(tr + ',' + cc);
-      for (let rr = 0; rr < ROWS; rr++) blastCells.add(rr + ',' + tc);
-      blastCells.add(specialPos.r + ',' + specialPos.c);
+      // Wipe entire row + column through the Black Hole's OWN position
+      const br = specialPos.r, bc = specialPos.c;
+      for (let cc = 0; cc < COLS; cc++) blastCells.add(br + ',' + cc);
+      for (let rr = 0; rr < ROWS; rr++) blastCells.add(rr + ',' + bc);
       showPopup('🌑 BLACK HOLE!');
+      soundSpecial();
+    } else if (special.special === SPECIAL_PULSAR) {
+      // Blast 3×3 area centred on the Pulsar's OWN position
+      const pr = specialPos.r, pc = specialPos.c;
+      for (let dr = -1; dr <= 1; dr++)
+        for (let dc = -1; dc <= 1; dc++) {
+          const nr = pr+dr, nc = pc+dc;
+          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) blastCells.add(nr+','+nc);
+        }
+      blastCells.add(specialPos.r + ',' + specialPos.c);
+      showPopup('⭐ PULSAR BLAST!');
       soundSpecial();
     }
 
@@ -1278,10 +1325,15 @@ async function resolveMatches(matches, specials) {
         showPopup('⭐ PULSAR BLAST!');
         soundSpecial();
       } else if (gem.special === SPECIAL_COLOR_BOMB) {
-        // Remove ALL gems of this planet type from the board
+        // Find the most common planet type on the board to clear
+        const typeCounts = new Array(PLANET_TYPES).fill(0);
         for (let rr = 0; rr < ROWS; rr++)
           for (let cc = 0; cc < COLS; cc++)
-            if (board[rr][cc]?.type === gem.type) extraCells.add(rr+','+cc);
+            if (board[rr][cc] && !board[rr][cc].special) typeCounts[board[rr][cc].type]++;
+        const targetType = typeCounts.indexOf(Math.max(...typeCounts));
+        for (let rr = 0; rr < ROWS; rr++)
+          for (let cc = 0; cc < COLS; cc++)
+            if (board[rr][cc] && !board[rr][cc].special && board[rr][cc].type === targetType) extraCells.add(rr+','+cc);
         showPopup('🌈 COLOR BOMB!');
         soundSpecial();
       }
