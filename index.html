@@ -37,6 +37,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 .nebula { position:absolute; border-radius:50%; filter:blur(40px); pointer-events:none; }
 
 #app { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; height:100dvh; padding:6px 8px 4px; gap:4px; }
+#app.hidden { visibility:hidden; }
 
 /* ── Title ── */
 #title {
@@ -348,11 +349,22 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
   -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
   text-align:center;
 }
-.ms-planets {
-  display:flex; gap:10px; font-size:28px;
-  animation:orbitRow 8s linear infinite;
+#ms-gem-grid {
+  display:grid;
+  grid-template-columns: repeat(8, 36px);
+  grid-template-rows: repeat(2, 36px);
+  gap:4px;
 }
-@keyframes orbitRow { 0%{transform:translateX(-8px);} 50%{transform:translateX(8px);} 100%{transform:translateX(-8px);} }
+#ms-gem-grid .ms-gem {
+  width:36px; height:36px;
+  animation: msFloat var(--f,3s) ease-in-out infinite;
+  animation-delay: var(--fd, 0s);
+}
+#ms-gem-grid .ms-gem svg { width:100%; height:100%; display:block; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5)); }
+@keyframes msFloat {
+  0%,100% { transform:translateY(0); }
+  50%      { transform:translateY(-5px); }
+}
 .ms-sub { font-size:13px; color:#4a6a9a; text-align:center; margin-top:-8px; }
 .mode-btn {
   width:100%; max-width:280px; padding:18px 22px;
@@ -381,7 +393,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 
 <div id="space-bg"></div>
 
-<div id="app">
+<div id="app" class="hidden">
   <div id="title">Planet Crush!</div>
   <div id="header">
     <div class="hbox"><div class="hlabel">Score</div><div class="hval" id="score">0</div></div>
@@ -492,7 +504,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 </div>
 <div id="mode-screen" class="hidden">
   <div class="ms-title">Planet Crush!</div>
-  <div class="ms-planets">🌍 🪐 ☀️ 🌕 🔴 🟡</div>
+  <div id="ms-gem-grid"></div>
   <div class="ms-sub">Choose your mission</div>
   <button class="mode-btn mode-btn-kid" id="btn-kid">
     <span class="micon">🌍</span>
@@ -1700,6 +1712,7 @@ function startGame(mode) {
   score = 0; level = 1;
   best = parseInt(localStorage.getItem('planet_crush_best_' + mode) || '0');
   movesLeft = movesForLevel(1);
+  document.getElementById('app').classList.remove('hidden');
   document.getElementById('mode-screen').classList.add('hidden');
   document.getElementById('level-complete').classList.remove('show');
   document.getElementById('game-over').classList.remove('show');
@@ -1745,6 +1758,29 @@ function setResponsiveSize() {
 }
 
 // ═══ WIRING ═══════════════════════════════════════════════════════════════════
+// ── Mode screen gem grid ───────────────────────────────────────────────────
+(function buildMsGemGrid() {
+  const grid = document.getElementById('ms-gem-grid');
+  if (!grid) return;
+  const COLS_G = 8, ROWS_G = 2;
+  // Shuffle all 8 planet types across 16 cells (each type appears twice)
+  const types = [...Array(PLANET_TYPES)].flatMap((_, i) => [i, i]);
+  types.sort(() => Math.random() - 0.5);
+  types.forEach((type, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'ms-gem';
+    const dur  = (2.5 + Math.random() * 2).toFixed(1) + 's';
+    const delay= (Math.random() * 2).toFixed(2) + 's';
+    cell.style.setProperty('--f',  dur);
+    cell.style.setProperty('--fd', delay);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 40 40');
+    svg.innerHTML = PLANET_SVG[type]();
+    cell.appendChild(svg);
+    grid.appendChild(cell);
+  });
+})();
+
 document.getElementById('btn-kid').addEventListener('click',    () => startGame('kid'));
 document.getElementById('btn-adult').addEventListener('click',  () => startGame('adult'));
 document.getElementById('lc-next').addEventListener('click',    nextLevel);
