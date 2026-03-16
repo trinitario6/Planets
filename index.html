@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#060818">
+<title>Planet Crush!</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; touch-action:none; }
+:root {
+  --bg:    #060818;
+  --bg2:   #0d1530;
+  --bg3:   #121f45;
+  --gold:  #ffd700;
+  --accent:#7eb8ff;
+  --cell:  44px;
+  --cols:  8;
+  --rows:  8;
+}
+html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:'Segoe UI',system-ui,sans-serif; }
+
+/* ── Deep space background ── */
+#space-bg {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(30,60,160,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 70%, rgba(80,20,140,0.14) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 10%, rgba(10,30,100,0.2) 0%, transparent 50%),
+    #060818;
+}
+.star { position:absolute; border-radius:50%; background:#fff; animation:twinkle var(--d,2s) ease-in-out infinite; }
+@keyframes twinkle { 0%,100%{opacity:0.15;transform:scale(1);} 50%{opacity:1;transform:scale(1.4);} }
+/* Nebula wisps */
+.nebula { position:absolute; border-radius:50%; filter:blur(40px); pointer-events:none; }
+
+#app { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; height:100dvh; padding:6px 8px 4px; gap:4px; }
+
+/* ── Title ── */
+#title {
+  font-size:24px; font-weight:900; letter-spacing:4px; text-transform:uppercase;
+  background:linear-gradient(135deg,#ffd700,#7eb8ff,#c084fc,#7eb8ff,#ffd700);
+  background-size:300% auto;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  animation:shimmer 4s linear infinite;
+  filter:drop-shadow(0 0 12px rgba(126,184,255,0.5));
+  line-height:1;
+}
+@keyframes shimmer { 0%{background-position:0%} 100%{background-position:300%} }
+
+/* ── Header ── */
+#header { width:100%; display:flex; justify-content:space-between; align-items:center; padding:2px 4px; }
+.hbox { text-align:center; }
+.hlabel { font-size:9px; color:#4a6a9a; letter-spacing:2px; text-transform:uppercase; }
+.hval { font-size:22px; font-weight:700; color:#c8e0ff; line-height:1; }
+.hval.gold { color:var(--gold); font-size:16px; }
+#level-box { text-align:center; }
+#level-label { font-size:9px; color:#4a6a9a; letter-spacing:2px; text-transform:uppercase; }
+#level-val { font-size:22px; font-weight:700; color:#c084fc; line-height:1; }
+
+/* ── Progress bar (orbit ring style) ── */
+#progress-wrap {
+  width:100%; height:6px;
+  background:rgba(126,184,255,0.08);
+  border-radius:3px; overflow:hidden;
+  border:1px solid rgba(126,184,255,0.12);
+}
+#progress-bar {
+  height:100%;
+  background:linear-gradient(90deg,#3b6fd4,#7eb8ff,#c084fc);
+  border-radius:3px; transition:width 0.5s ease; width:0%;
+  box-shadow:0 0 8px rgba(126,184,255,0.5);
+}
+
+/* ── Board ── */
+#board-wrap { position:relative; }
+#board {
+  display:grid;
+  grid-template-columns:repeat(var(--cols), var(--cell));
+  grid-template-rows:repeat(var(--rows), var(--cell));
+  gap:3px;
+  background:rgba(126,184,255,0.04);
+  border-radius:16px;
+  padding:6px;
+  border:1px solid rgba(126,184,255,0.1);
+  box-shadow:0 0 50px rgba(60,100,200,0.25), inset 0 0 30px rgba(0,0,20,0.4);
+}
+
+/* ── Cells ── */
+.cell {
+  width:var(--cell); height:var(--cell);
+  border-radius:50%;
+  position:relative; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:calc(var(--cell)*0.56);
+  line-height:1;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(126,184,255,0.07);
+}
+.cell.gem { border:none; }
+
+/* Selected: glowing orbit ring */
+.cell.selected {
+  outline:2px solid #7eb8ff;
+  outline-offset:2px;
+  animation:orbit-pulse 0.6s ease infinite alternate;
+}
+@keyframes orbit-pulse {
+  from { box-shadow:0 0 0 2px rgba(126,184,255,0.3); filter:brightness(1.1); }
+  to   { box-shadow:0 0 0 6px rgba(126,184,255,0.6), 0 0 20px rgba(126,184,255,0.4); filter:brightness(1.4); }
+}
+
+.cell.matched { animation:planetBurst 0.38s ease forwards; }
+@keyframes planetBurst {
+  0%  { transform:scale(1); filter:brightness(1); }
+  40% { transform:scale(1.35); filter:brightness(3) saturate(2); }
+  100%{ transform:scale(0); opacity:0; }
+}
+
+.cell.invalid-swap { animation:wobble 0.32s ease; }
+@keyframes wobble { 0%,100%{transform:rotate(0);} 25%{transform:rotate(-8deg);} 75%{transform:rotate(8deg);} }
+
+/* ── Planet styles — each a unique world ── */
+/* Mercury: rocky grey */
+.p0 {
+  background:radial-gradient(circle at 38% 32%, #d4cfc8, #8c8278 45%, #5a524a);
+  box-shadow:0 2px 10px rgba(140,130,120,0.6);
+}
+/* Venus: toxic yellow-orange */
+.p1 {
+  background:radial-gradient(circle at 38% 32%, #fff3a0, #e8b84b 40%, #c47a0a);
+  box-shadow:0 2px 10px rgba(232,184,75,0.7);
+}
+/* Earth: blue-green */
+.p2 {
+  background:radial-gradient(circle at 38% 32%, #a8d8f0, #2e86c1 38%, #1a5276);
+  box-shadow:0 2px 10px rgba(46,134,193,0.7);
+}
+/* Mars: red desert */
+.p3 {
+  background:radial-gradient(circle at 38% 32%, #f4a586, #c0392b 40%, #7b241c);
+  box-shadow:0 2px 10px rgba(192,57,43,0.7);
+}
+/* Jupiter: banded giant */
+.p4 {
+  background:radial-gradient(circle at 38% 32%, #f5cba7, #d4873a 35%, #9a5b18);
+  box-shadow:0 2px 10px rgba(212,135,58,0.7);
+}
+/* Saturn: pale gold with ring hint */
+.p5 {
+  background:radial-gradient(circle at 38% 32%, #fef0c4, #d4b96a 40%, #a08030);
+  box-shadow:0 2px 10px rgba(212,185,106,0.7);
+}
+
+/* Shine on every planet */
+.cell.gem::after {
+  content:''; position:absolute;
+  top:12%; left:15%; width:38%; height:30%;
+  border-radius:50%;
+  background:rgba(255,255,255,0.28);
+  pointer-events:none;
+  transform:rotate(-30deg);
+}
+
+/* Saturn ring overlay */
+.p5::before {
+  content:''; position:absolute;
+  width:140%; height:30%;
+  border:2px solid rgba(255,230,150,0.5);
+  border-radius:50%;
+  top:35%; left:-20%;
+  pointer-events:none;
+  z-index:1;
+  transform:rotateX(70deg);
+  box-shadow:0 0 4px rgba(255,220,100,0.3);
+}
+
+/* ── Score pop ── */
+.score-pop {
+  position:absolute; pointer-events:none; z-index:50;
+  font-size:15px; font-weight:800; color:#7eb8ff;
+  text-shadow:0 0 8px #7eb8ff;
+  animation:floatUp 0.9s ease forwards; white-space:nowrap;
+}
+@keyframes floatUp { 0%{opacity:1;transform:translateY(0) scale(1);} 100%{opacity:0;transform:translateY(-55px) scale(1.3);} }
+
+/* ── Board shake ── */
+#board-wrap.shake { animation:boardShake 0.38s ease; }
+@keyframes boardShake {
+  0%,100%{transform:translate(0,0);}
+  15%{transform:translate(-6px,3px);}
+  35%{transform:translate(6px,-3px);}
+  55%{transform:translate(-4px,2px);}
+  75%{transform:translate(5px,-2px);}
+}
+
+/* ── Moves display ── */
+#moves-wrap { width:100%; display:flex; align-items:center; justify-content:center; gap:5px; flex-wrap:wrap; }
+.move-dot {
+  width:9px; height:9px; border-radius:50%;
+  background:rgba(126,184,255,0.15);
+  border:1px solid rgba(126,184,255,0.2);
+  transition:all 0.2s;
+}
+.move-dot.active {
+  background:#3b6fd4;
+  border-color:#7eb8ff;
+  box-shadow:0 0 5px #7eb8ff;
+}
+
+/* ── Big popup ── */
+.big-popup {
+  position:fixed; left:50%; top:38%;
+  transform:translateX(-50%) scale(0);
+  z-index:300; pointer-events:none;
+  background:rgba(4,8,24,0.94);
+  border:2px solid rgba(126,184,255,0.5);
+  border-radius:30px; padding:10px 26px;
+  white-space:nowrap;
+  box-shadow:0 4px 40px rgba(0,0,0,0.9), 0 0 24px rgba(126,184,255,0.2);
+  animation:bigPop 1.7s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.big-popup span {
+  font-size:21px; font-weight:900;
+  background:linear-gradient(135deg,#ffd700,#7eb8ff,#c084fc,#ffd700);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  filter:drop-shadow(0 0 6px rgba(126,184,255,0.5));
+}
+@keyframes bigPop {
+  0%  {transform:translateX(-50%) scale(0) rotate(-5deg);opacity:0;}
+  18% {transform:translateX(-50%) scale(1.18) rotate(2deg);opacity:1;}
+  30% {transform:translateX(-50%) scale(0.96) rotate(-1deg);opacity:1;}
+  60% {transform:translateX(-50%) scale(1) rotate(0);opacity:1;}
+  80% {transform:translateX(-50%) scale(1) rotate(0);opacity:1;}
+  100%{transform:translateX(-50%) scale(0.8) translateY(-22px);opacity:0;}
+}
+
+/* ── Mute btn ── */
+#mute-btn {
+  position:fixed; top:8px; right:10px; z-index:20;
+  background:rgba(126,184,255,0.08); border:1px solid rgba(126,184,255,0.2);
+  border-radius:20px; color:#7eb8ff; font-size:14px; padding:4px 10px; cursor:pointer;
+}
+
+/* ── Overlays ── */
+.overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(2,5,18,0.92); z-index:200;
+  flex-direction:column; align-items:center; justify-content:center; gap:18px;
+}
+.overlay.show { display:flex; }
+.overlay h1 { font-size:30px; color:#7eb8ff; font-weight:900; letter-spacing:3px; }
+.overlay .sub { font-size:15px; color:#4a6a9a; }
+.overlay .sub span { color:#c8e0ff; font-weight:700; font-size:19px; }
+.btn-row { display:flex; gap:12px; }
+.ov-btn {
+  padding:13px 30px; font-size:15px; font-weight:800;
+  border:none; border-radius:30px; cursor:pointer; letter-spacing:1px;
+}
+.ov-btn.primary { background:linear-gradient(135deg,#2563eb,#7eb8ff); color:#fff; box-shadow:0 4px 20px rgba(126,184,255,0.4); }
+.ov-btn.secondary { background:rgba(255,255,255,0.08); color:#aaa; border:1px solid rgba(255,255,255,0.15); }
+
+/* ── Mode select ── */
+#mode-screen {
+  display:flex; position:fixed; inset:0;
+  background:#060818; z-index:400;
+  flex-direction:column; align-items:center; justify-content:center; gap:20px; padding:28px;
+}
+#mode-screen.hidden { display:none; }
+.ms-title {
+  font-size:28px; font-weight:900; letter-spacing:4px; text-transform:uppercase;
+  background:linear-gradient(135deg,#ffd700,#7eb8ff,#c084fc);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  text-align:center;
+}
+.ms-planets {
+  display:flex; gap:10px; font-size:28px;
+  animation:orbitRow 8s linear infinite;
+}
+@keyframes orbitRow { 0%{transform:translateX(-8px);} 50%{transform:translateX(8px);} 100%{transform:translateX(-8px);} }
+.ms-sub { font-size:13px; color:#4a6a9a; text-align:center; margin-top:-8px; }
+.mode-btn {
+  width:100%; max-width:280px; padding:18px 22px;
+  border:none; border-radius:18px; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+  transition:transform 0.15s;
+}
+.mode-btn:active { transform:scale(0.97); }
+.mode-btn-kid   { background:linear-gradient(135deg,#1e3a8a,#3b82f6); box-shadow:0 6px 24px rgba(59,130,246,0.4); }
+.mode-btn-adult { background:linear-gradient(135deg,#4c1d95,#7c3aed); box-shadow:0 6px 24px rgba(124,58,237,0.4); }
+.mode-btn .micon  { font-size:34px; line-height:1; }
+.mode-btn .mlabel { font-size:20px; font-weight:900; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,0.4); }
+.mode-btn .mdesc  { font-size:11px; color:rgba(255,255,255,0.8); text-align:center; line-height:1.4; }
+</style>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+
+<div id="space-bg"></div>
+
+<div id="app">
+  <div id="title">Planet Crush!</div>
+  <div id="header">
+    <div class="hbox"><div class="hlabel">Score</div><div class="hval" id="score">0</div></div>
+    <div id="level-box"><div id="level-label">Sector</div><div id="level-val">1</div></div>
+    <div class="hbox"><div class="hlabel">Best</div><div class="hval gold" id="best">0</div></div>
+  </div>
+  <div id="progress-wrap"><div id="progress-bar"></div></div>
+  <div id="board-wrap"><div id="board"></div></div>
+  <div id="moves-wrap"></div>
+</div>
+
+<button id="mute-btn">🔊</button>
+
+<div class="overlay" id="level-complete">
+  <h1>🚀 SECTOR CLEAR!</h1>
+  <div class="sub">Score: <span id="lc-score">0</span></div>
+  <div class="btn-row">
+    <button class="ov-btn primary" id="lc-next">Next Sector →</button>
+  </div>
+</div>
+
+<div class="overlay" id="game-over">
+  <h1>💀 LOST IN SPACE</h1>
+  <div class="sub">Score: <span id="go-score">0</span></div>
+  <div class="sub">Best: <span id="go-best">0</span></div>
+  <div class="btn-row">
+    <button class="ov-btn primary" id="go-restart">Try Again</button>
+  </div>
+</div>
+
+<div id="mode-screen">
+  <div class="ms-title">Planet Crush!</div>
+  <div class="ms-planets">🌍 🪐 ☀️ 🌕 🔴 🟡</div>
+  <div class="ms-sub">Choose your mission</div>
+  <button class="mode-btn mode-btn-kid" id="btn-kid">
+    <span class="micon">🌍</span>
+    <span class="mlabel">Explorer</span>
+    <span class="mdesc">More moves · Easier targets<br>Perfect for young astronauts!</span>
+  </button>
+  <button class="mode-btn mode-btn-adult" id="btn-adult">
+    <span class="micon">🪐</span>
+    <span class="mlabel">Commander</span>
+    <span class="mdesc">Fewer moves · Harder targets<br>For seasoned space veterans!</span>
+  </button>
+</div>
+
+<script>
+// ═══ STARFIELD ════════════════════════════════════════════════════════════════
+(function(){
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;';
+  // Stars — varied sizes and brightness
+  for (let i = 0; i < 90; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() < 0.08 ? Math.random() * 2 + 2 : Math.random() * 1.2 + 0.4;
+    s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${(Math.random()*4+1.5).toFixed(1)}s;animation-delay:${(Math.random()*5).toFixed(1)}s;opacity:${(Math.random()*0.5+0.3).toFixed(2)}`;
+    wrap.appendChild(s);
+  }
+  // Nebula wisps
+  const nebulaColors = [
+    'rgba(30,80,200,0.06)','rgba(100,20,160,0.05)',
+    'rgba(0,60,140,0.07)','rgba(60,0,120,0.05)',
+  ];
+  nebulaColors.forEach((c, i) => {
+    const n = document.createElement('div');
+    n.className = 'nebula';
+    const s = 150 + Math.random() * 200;
+    n.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*80}%;top:${Math.random()*80}%;background:${c};`;
+    wrap.appendChild(n);
+  });
+  document.body.appendChild(wrap);
+})();
+
+// ═══ AUDIO ════════════════════════════════════════════════════════════════════
+let audioCtx = null, muted = false;
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function tone(freq, dur, vol=0.18, type='sine') {
+  if (muted) return;
+  try {
+    const ctx = getCtx(), o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    o.start(); o.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+// Spacey bleepy sounds
+function soundSwap()    { tone(380, 0.07, 0.12, 'sine'); setTimeout(() => tone(520, 0.06, 0.1, 'sine'), 60); }
+function soundMatch(n)  { [440,554,659,880].slice(0, Math.min(n,4)).forEach((f,i) => setTimeout(()=>tone(f,0.18,0.18,'square'),i*55)); }
+function soundNoMatch() { tone(180, 0.15, 0.15, 'sawtooth'); }
+function soundLevelUp() { [440,554,659,880,1108].forEach((f,i) => setTimeout(()=>tone(f,0.28,0.2,'sine'),i*80)); }
+document.getElementById('mute-btn').addEventListener('click', () => {
+  muted = !muted;
+  document.getElementById('mute-btn').textContent = muted ? '🔇' : '🔊';
+});
+
+// ═══ GAME CONSTANTS ═══════════════════════════════════════════════════════════
+const COLS = 8, ROWS = 8;
+const PLANET_TYPES = 6;
+
+// 6 planet types: Mercury, Venus, Earth, Mars, Jupiter, Saturn
+const PLANET_LABELS = ['☿','♀','🌍','♂','♃','🪐'];
+const PLANET_NAMES  = ['Mercury','Venus','Earth','Mars','Jupiter','Saturn'];
+
+const LEVEL_TARGETS = [500, 1200, 2500, 4500, 7000, 10500, 15000, 21000, 28000, 36500];
+const BASE_MOVES = { kid: 30, adult: 20 };
+
+let board = [];
+let score = 0, best = 0, level = 1, movesLeft = 0, gameMode = 'adult';
+let selectedCell = null;
+let animating = false;
+let _popToggle = 0;
+
+// ═══ BOARD INIT ═══════════════════════════════════════════════════════════════
+function randomPlanet() { return { type: Math.floor(Math.random() * PLANET_TYPES), special: null }; }
+
+function initBoard() {
+  board = Array.from({ length: ROWS }, () => Array.from({ length: COLS }, randomPlanet));
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        while (
+          (c >= 2 && board[r][c].type === board[r][c-1].type && board[r][c].type === board[r][c-2].type) ||
+          (r >= 2 && board[r][c].type === board[r-1][c].type && board[r][c].type === board[r-2][c].type)
+        ) { board[r][c] = randomPlanet(); changed = true; }
+      }
+    }
+  }
+}
+
+function movesForLevel(lv) {
+  const base = gameMode === 'kid' ? BASE_MOVES.kid : BASE_MOVES.adult;
+  return Math.max(base - Math.floor((lv - 1) * 1.5), 8);
+}
+function targetForLevel(lv) {
+  return LEVEL_TARGETS[Math.min(lv-1, LEVEL_TARGETS.length-1)] || LEVEL_TARGETS[LEVEL_TARGETS.length-1] + (lv-LEVEL_TARGETS.length)*10000;
+}
+
+// ═══ RENDER ═══════════════════════════════════════════════════════════════════
+function renderBoard() {
+  const el = document.getElementById('board');
+  el.innerHTML = '';
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      el.appendChild(makeCell(r, c));
+  attachBoardEvents();
+}
+
+function makeCell(r, c) {
+  const div = document.createElement('div');
+  div.dataset.r = r; div.dataset.c = c;
+  div.className = 'cell';
+  const planet = board[r][c];
+  if (planet) {
+    div.classList.add('gem', 'p' + planet.type);
+    // Use text label for planet type — renders cleanly as CSS-styled circle
+    div.textContent = PLANET_LABELS[planet.type];
+    div.style.fontSize = 'calc(var(--cell) * 0.38)';
+    div.style.color = 'rgba(255,255,255,0.6)';
+    div.style.fontWeight = '700';
+    div.style.letterSpacing = '0';
+  }
+  return div;
+}
+
+function updateCell(r, c) {
+  const el = document.getElementById('board');
+  const idx = r * COLS + c;
+  const old = el.children[idx];
+  if (!old) return;
+  el.replaceChild(makeCell(r, c), old);
+}
+
+function updateScore() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('best').textContent = best;
+  document.getElementById('level-val').textContent = level;
+  const target = targetForLevel(level);
+  document.getElementById('progress-bar').style.width = Math.min(score / target * 100, 100) + '%';
+}
+
+function updateMoves() {
+  const wrap = document.getElementById('moves-wrap');
+  wrap.innerHTML = '';
+  const max = movesForLevel(level);
+  const dots = Math.min(max, 30);
+  for (let i = 0; i < dots; i++) {
+    const d = document.createElement('div');
+    d.className = 'move-dot' + (i < movesLeft ? ' active' : '');
+    wrap.appendChild(d);
+  }
+}
+
+// ═══ EVENTS ═══════════════════════════════════════════════════════════════════
+let touchStart = null;
+function attachBoardEvents() {
+  const el = document.getElementById('board');
+  el.addEventListener('touchstart', onTouchStart, { passive: false });
+  el.addEventListener('touchend',   onTouchEnd,   { passive: false });
+  el.addEventListener('mousedown',  onMouseDown);
+  el.addEventListener('mouseup',    onMouseUp);
+}
+function cellFromEvent(e) {
+  const touch = e.touches ? e.touches[0] : e;
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (!target || !target.dataset.r) return null;
+  return { r: +target.dataset.r, c: +target.dataset.c };
+}
+function onTouchStart(e) { e.preventDefault(); touchStart = cellFromEvent(e); }
+function onTouchEnd(e) {
+  e.preventDefault();
+  if (!touchStart || animating) return;
+  const end = cellFromEvent(e);
+  if (!end) { touchStart = null; return; }
+  if (end.r === touchStart.r && end.c === touchStart.c) {
+    handleTap(end.r, end.c);
+  } else {
+    const dr = end.r - touchStart.r, dc = end.c - touchStart.c;
+    if (Math.abs(dr) + Math.abs(dc) === 1) {
+      handleSwap(touchStart.r, touchStart.c, end.r, end.c);
+    } else if (Math.abs(dc) > Math.abs(dr)) {
+      handleSwap(touchStart.r, touchStart.c, touchStart.r, touchStart.c + Math.sign(dc));
+    } else {
+      handleSwap(touchStart.r, touchStart.c, touchStart.r + Math.sign(dr), touchStart.c);
+    }
+  }
+  touchStart = null;
+}
+let mouseDown = null;
+function onMouseDown(e) { mouseDown = cellFromEvent(e); }
+function onMouseUp(e) {
+  if (!mouseDown || animating) return;
+  const up = cellFromEvent(e);
+  if (!up) { mouseDown = null; return; }
+  if (up.r === mouseDown.r && up.c === mouseDown.c) {
+    handleTap(up.r, up.c);
+  } else {
+    const dr = up.r - mouseDown.r, dc = up.c - mouseDown.c;
+    if (Math.abs(dr) + Math.abs(dc) === 1) handleSwap(mouseDown.r, mouseDown.c, up.r, up.c);
+  }
+  mouseDown = null;
+}
+function handleTap(r, c) {
+  if (!board[r][c]) return;
+  if (selectedCell) {
+    const { r: sr, c: sc } = selectedCell;
+    if (sr === r && sc === c) { clearSelection(); return; }
+    if (Math.abs(r-sr) + Math.abs(c-sc) === 1) { clearSelection(); handleSwap(sr, sc, r, c); return; }
+    clearSelection();
+  }
+  selectCell(r, c);
+}
+function selectCell(r, c) {
+  selectedCell = { r, c };
+  document.getElementById('board').children[r * COLS + c]?.classList.add('selected');
+}
+function clearSelection() {
+  if (!selectedCell) return;
+  document.getElementById('board').children[selectedCell.r * COLS + selectedCell.c]?.classList.remove('selected');
+  selectedCell = null;
+}
+
+// ═══ SWAP ════════════════════════════════════════════════════════════════════
+async function handleSwap(r1, c1, r2, c2) {
+  if (animating) return;
+  if (!board[r1]?.[c1] || !board[r2]?.[c2]) return;
+  animating = true;
+  soundSwap();
+
+  const tmp = board[r1][c1]; board[r1][c1] = board[r2][c2]; board[r2][c2] = tmp;
+  updateCell(r1, c1); updateCell(r2, c2);
+
+  const matches = findMatches();
+  if (matches.size === 0) {
+    await wait(110);
+    const t2 = board[r1][c1]; board[r1][c1] = board[r2][c2]; board[r2][c2] = t2;
+    updateCell(r1, c1); updateCell(r2, c2);
+    const boardEl = document.getElementById('board');
+    [r1*COLS+c1, r2*COLS+c2].forEach(i => {
+      boardEl.children[i]?.classList.add('invalid-swap');
+      setTimeout(() => boardEl.children[i]?.classList.remove('invalid-swap'), 320);
+    });
+    soundNoMatch();
+    animating = false;
+    return;
+  }
+
+  movesLeft--;
+  updateMoves();
+  await resolveMatches(matches);
+  checkGameState();
+  animating = false;
+}
+
+// ═══ MATCH FINDING ════════════════════════════════════════════════════════════
+function findMatches() {
+  const matched = new Set();
+  for (let r = 0; r < ROWS; r++) {
+    let run = 1;
+    for (let c = 1; c <= COLS; c++) {
+      if (c < COLS && board[r][c] && board[r][c-1] && !board[r][c].special && !board[r][c-1].special && board[r][c].type === board[r][c-1].type) {
+        run++;
+      } else {
+        if (run >= 3) for (let k = c-run; k < c; k++) matched.add(r+','+k);
+        run = 1;
+      }
+    }
+  }
+  for (let c = 0; c < COLS; c++) {
+    let run = 1;
+    for (let r = 1; r <= ROWS; r++) {
+      if (r < ROWS && board[r][c] && board[r-1][c] && !board[r][c].special && !board[r-1][c].special && board[r][c].type === board[r-1][c].type) {
+        run++;
+      } else {
+        if (run >= 3) for (let k = r-run; k < r; k++) matched.add(k+','+c);
+        run = 1;
+      }
+    }
+  }
+  return matched;
+}
+
+// ═══ RESOLVE MATCHES ══════════════════════════════════════════════════════════
+async function resolveMatches(matches) {
+  let cascade = 0;
+  while (matches.size > 0) {
+    cascade++;
+    const pts = matches.size * 30 * cascade;
+    score += pts;
+    if (score > best) { best = score; localStorage.setItem('planet_crush_best_' + gameMode, best); }
+    updateScore();
+    soundMatch(Math.min(cascade + 1, 4));
+
+    // Space-themed cascade popups
+    if (cascade === 2) showPopup('✨ Sebtacular! ✨');
+    else if (cascade === 3) showPopup(_popToggle++ % 2 === 0 ? '💫 Lawsome! 💫' : '💥 Siuperb! 💥');
+    else if (cascade >= 4) showPopup('🚀 ORBITAL CRUSH! 🚀');
+
+    showScorePop(pts);
+
+    const boardEl = document.getElementById('board');
+    matches.forEach(key => {
+      const [r,c] = key.split(',').map(Number);
+      boardEl.children[r*COLS+c]?.classList.add('matched');
+    });
+
+    if (matches.size >= 4) {
+      const wrap = document.getElementById('board-wrap');
+      wrap.classList.add('shake');
+      wrap.addEventListener('animationend', () => wrap.classList.remove('shake'), { once: true });
+    }
+
+    await wait(360);
+
+    matches.forEach(key => {
+      const [r,c] = key.split(',').map(Number);
+      board[r][c] = null;
+    });
+
+    await dropPlanets();
+    fillGaps();
+    requestAnimationFrame(() => renderBoard());
+    await wait(290);
+
+    matches = findMatches();
+  }
+}
+
+async function dropPlanets() {
+  for (let c = 0; c < COLS; c++) {
+    let empty = ROWS - 1;
+    for (let r = ROWS-1; r >= 0; r--) {
+      if (board[r][c] !== null) {
+        if (empty !== r) { board[empty][c] = board[r][c]; board[r][c] = null; }
+        empty--;
+      }
+    }
+  }
+}
+
+function fillGaps() {
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (board[r][c] === null) board[r][c] = randomPlanet();
+}
+
+// ═══ GAME STATE ═══════════════════════════════════════════════════════════════
+function checkGameState() {
+  if (score >= targetForLevel(level)) { setTimeout(() => triggerLevelComplete(), 300); return; }
+  if (movesLeft <= 0) { setTimeout(() => triggerGameOver(), 300); return; }
+  if (!hasValidMove()) {
+    showPopup('🔀 Gravity shift!');
+    setTimeout(() => { shuffleBoard(); renderBoard(); }, 650);
+  }
+}
+
+function hasValidMove() {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (c + 1 < COLS) {
+        const t = board[r][c]; board[r][c] = board[r][c+1]; board[r][c+1] = t;
+        if (findMatches().size > 0) { const t2=board[r][c];board[r][c]=board[r][c+1];board[r][c+1]=t2; return true; }
+        const t2=board[r][c];board[r][c]=board[r][c+1];board[r][c+1]=t2;
+      }
+      if (r + 1 < ROWS) {
+        const t = board[r][c]; board[r][c] = board[r+1][c]; board[r+1][c] = t;
+        if (findMatches().size > 0) { const t2=board[r][c];board[r][c]=board[r+1][c];board[r+1][c]=t2; return true; }
+        const t2=board[r][c];board[r][c]=board[r+1][c];board[r+1][c]=t2;
+      }
+    }
+  }
+  return false;
+}
+
+function shuffleBoard() {
+  const planets = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) planets.push(board[r][c]);
+  planets.sort(() => Math.random() - 0.5);
+  let i = 0;
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) board[r][c] = planets[i++];
+}
+
+function triggerLevelComplete() {
+  soundLevelUp();
+  document.getElementById('lc-score').textContent = score;
+  document.getElementById('level-complete').classList.add('show');
+}
+
+function triggerGameOver() {
+  document.getElementById('go-score').textContent = score;
+  document.getElementById('go-best').textContent = best;
+  document.getElementById('game-over').classList.add('show');
+}
+
+function nextLevel() {
+  level++;
+  movesLeft = movesForLevel(level);
+  document.getElementById('level-complete').classList.remove('show');
+  initBoard(); renderBoard(); updateScore(); updateMoves();
+  showPopup('🌌 Sector ' + level + '!');
+}
+
+function startGame(mode) {
+  gameMode = mode;
+  score = 0; level = 1;
+  best = parseInt(localStorage.getItem('planet_crush_best_' + mode) || '0');
+  movesLeft = movesForLevel(1);
+  document.getElementById('mode-screen').classList.add('hidden');
+  document.getElementById('level-complete').classList.remove('show');
+  document.getElementById('game-over').classList.remove('show');
+  initBoard(); renderBoard(); updateScore(); updateMoves();
+}
+
+// ═══ POPUPS ═══════════════════════════════════════════════════════════════════
+function showPopup(text) {
+  document.querySelectorAll('.big-popup').forEach(el => el.remove());
+  const pop = document.createElement('div');
+  pop.className = 'big-popup';
+  const span = document.createElement('span');
+  span.textContent = text;
+  pop.appendChild(span);
+  document.body.appendChild(pop);
+  pop.addEventListener('animationend', () => pop.remove());
+}
+
+function showScorePop(pts) {
+  const wrap = document.getElementById('board-wrap');
+  const pop = document.createElement('div');
+  pop.className = 'score-pop';
+  pop.textContent = '+' + pts;
+  pop.style.top  = (20 + Math.random() * 60) + '%';
+  pop.style.left = (20 + Math.random() * 60) + '%';
+  wrap.appendChild(pop);
+  pop.addEventListener('animationend', () => pop.remove());
+}
+
+// ═══ UTILS ════════════════════════════════════════════════════════════════════
+function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+function setResponsiveSize() {
+  const vw = window.innerWidth - 24;
+  const vh = window.innerHeight * 0.54;
+  const cell = Math.floor((Math.min(vw, vh) - 12 - 7 * 3) / 8);
+  document.documentElement.style.setProperty('--cell', cell + 'px');
+}
+
+// ═══ WIRING ═══════════════════════════════════════════════════════════════════
+document.getElementById('btn-kid').addEventListener('click',    () => startGame('kid'));
+document.getElementById('btn-adult').addEventListener('click',  () => startGame('adult'));
+document.getElementById('lc-next').addEventListener('click',    nextLevel);
+document.getElementById('go-restart').addEventListener('click', () => {
+  document.getElementById('game-over').classList.remove('show');
+  document.getElementById('mode-screen').classList.remove('hidden');
+});
+
+window.addEventListener('resize', () => { setResponsiveSize(); renderBoard(); });
+setResponsiveSize();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("./sw.js").catch(()=>{}); });
+}
+</script>
+</body>
+</html>
