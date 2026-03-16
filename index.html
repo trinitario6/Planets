@@ -1232,8 +1232,8 @@ async function handleSwap(r1, c1, r2, c2) {
       showPopup('⚛️ QUANTUM BOMB!');
       soundSpecial();
     } else if (special.special === SPECIAL_BLACK_HOLE) {
-      // Blast 3×3 area centred on the Black Hole's OWN position
-      const br = specialPos.r, bc = specialPos.c;
+      // Blast 3×3 area centred on where the Black Hole LANDS after the swap
+      const br = targetPos.r, bc = targetPos.c;
       for (let dr = -1; dr <= 1; dr++)
         for (let dc = -1; dc <= 1; dc++) {
           const nr = br+dr, nc = bc+dc;
