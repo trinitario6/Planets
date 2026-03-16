@@ -732,26 +732,31 @@ const PLANET_SVG = [
     <path d="M16 25 Q20 27.5 24 25" stroke="#2e1065" stroke-width="1.6" fill="none" stroke-linecap="round"/>
     <ellipse cx="13" cy="12" rx="4.5" ry="2.8" fill="white" opacity="0.32" transform="rotate(-30,13,12)"/>`,
 
-  // 1: Venus — HOT PINK/MAGENTA — cheeky wink
+  // 1: Venus — WARM ORANGE — cheeky wink, toxic cloud bands
   () => `
     <defs><radialGradient id="v1g" cx="38%" cy="32%" r="60%">
-      <stop offset="0%" stop-color="#fdf2f8"/>
-      <stop offset="40%" stop-color="#ec4899"/>
-      <stop offset="100%" stop-color="#9d174d"/>
+      <stop offset="0%" stop-color="#fff3e0"/>
+      <stop offset="40%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#9a3412"/>
     </radialGradient></defs>
     <circle cx="20" cy="20" r="16" fill="url(#v1g)" filter="url(#glow1)"/>
-    <defs><filter id="glow1"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#ec4899" flood-opacity="0.95"/></filter></defs>
-    <circle cx="20" cy="20" r="16" fill="none" stroke="#f9a8d4" stroke-width="1.2" opacity="0.7"/>
-    <path d="M5 16 Q10 13 15 16 Q20 19 25 16 Q30 13 35 16" stroke="#fbcfe8" stroke-width="2.5" fill="none" opacity="0.65"/>
-    <path d="M5 23 Q10 26 16 23 Q22 20 28 23 Q32 26 35 23" stroke="#be185d" stroke-width="2" fill="none" opacity="0.55"/>
-    <path d="M12 18.5 Q14.5 16 17 18.5" stroke="#500724" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-    <circle cx="25" cy="17.5" r="2.4" fill="#500724"/>
+    <defs><filter id="glow1"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#f97316" flood-opacity="0.95"/></filter></defs>
+    <circle cx="20" cy="20" r="16" fill="none" stroke="#fdba74" stroke-width="1.2" opacity="0.7"/>
+    <!-- cloud bands -->
+    <path d="M5 16 Q10 13 15 16 Q20 19 25 16 Q30 13 35 16" stroke="#fed7aa" stroke-width="2.5" fill="none" opacity="0.65"/>
+    <path d="M5 23 Q10 26 16 23 Q22 20 28 23 Q32 26 35 23" stroke="#c2410c" stroke-width="2" fill="none" opacity="0.55"/>
+    <!-- wink (left closed) -->
+    <path d="M12 18.5 Q14.5 16 17 18.5" stroke="#431407" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <!-- open eye right -->
+    <circle cx="25" cy="17.5" r="2.4" fill="#431407"/>
     <circle cx="25.9" cy="16.6" r="1" fill="white"/>
     <circle cx="26.5" cy="16.3" r="0.45" fill="white" opacity="0.8"/>
-    <path d="M13 24.5 Q20 30 27 24.5" stroke="#500724" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-    <circle cx="10.5" cy="23" r="3.5" fill="#fda4af" opacity="0.55"/>
-    <circle cx="29.5" cy="23" r="3.5" fill="#fda4af" opacity="0.55"/>
-    <ellipse cx="13" cy="12" rx="4.5" ry="2.8" fill="white" opacity="0.35" transform="rotate(-30,13,12)"/>`,
+    <!-- cheeky grin -->
+    <path d="M13 24.5 Q20 30 27 24.5" stroke="#431407" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <!-- rosy cheeks — warm amber -->
+    <circle cx="10.5" cy="23" r="3.5" fill="#fb923c" opacity="0.45"/>
+    <circle cx="29.5" cy="23" r="3.5" fill="#fb923c" opacity="0.45"/>
+    <ellipse cx="13" cy="12" rx="4.5" ry="2.8" fill="white" opacity="0.3" transform="rotate(-30,13,12)"/>`,
 
   // 2: Earth — BRIGHT CYAN/TEAL — happy face
   () => `
@@ -775,7 +780,7 @@ const PLANET_SVG = [
     <path d="M13 24 Q20 30.5 27 24" stroke="#0c4a6e" stroke-width="2" fill="none" stroke-linecap="round"/>
     <ellipse cx="13" cy="12" rx="4.5" ry="2.8" fill="white" opacity="0.38" transform="rotate(-30,13,12)"/>`,
 
-  // 3: Mars — BRIGHT CRIMSON RED — grumpy face
+  // 3: Mars — BRIGHT CRIMSON RED — determined/adventurous face (not sad!)
   () => `
     <defs><radialGradient id="m3g" cx="38%" cy="32%" r="60%">
       <stop offset="0%" stop-color="#fee2e2"/>
@@ -785,18 +790,24 @@ const PLANET_SVG = [
     <circle cx="20" cy="20" r="16" fill="url(#m3g)" filter="url(#glow3)"/>
     <defs><filter id="glow3"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#ef4444" flood-opacity="0.95"/></filter></defs>
     <circle cx="20" cy="20" r="16" fill="none" stroke="#fca5a5" stroke-width="1.2" opacity="0.7"/>
+    <!-- craters -->
     <circle cx="11.5" cy="13.5" r="2.5" fill="#7f1d1d" opacity="0.5"/>
     <circle cx="11.5" cy="13.5" r="2.5" fill="none" stroke="#fca5a5" stroke-width="0.7" opacity="0.4"/>
     <circle cx="29" cy="27" r="1.8" fill="#7f1d1d" opacity="0.45"/>
+    <!-- polar ice cap -->
     <ellipse cx="20" cy="5" rx="6" ry="3.2" fill="white" opacity="0.75"/>
     <ellipse cx="20" cy="5" rx="4.5" ry="2.2" fill="white" opacity="0.55"/>
-    <path d="M11 15 Q15 11.5 19 14.5" stroke="#3b0808" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-    <path d="M21 14.5 Q25 11.5 29 15" stroke="#3b0808" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <!-- determined raised eyebrows (not angry — curious/bold) -->
+    <path d="M11.5 15.5 Q15 13 18.5 15" stroke="#3b0808" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M21.5 15 Q25 13 28.5 15.5" stroke="#3b0808" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <!-- confident eyes -->
     <circle cx="15" cy="18.5" r="2.3" fill="#3b0808"/>
     <circle cx="25" cy="18.5" r="2.3" fill="#3b0808"/>
     <circle cx="14.2" cy="17.7" r="0.9" fill="white"/>
     <circle cx="24.2" cy="17.7" r="0.9" fill="white"/>
-    <path d="M13 26 Q20 21.5 27 26" stroke="#3b0808" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- big adventurous smile -->
+    <path d="M13 23.5 Q20 29.5 27 23.5" stroke="#3b0808" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- dust blush -->
     <circle cx="9.5" cy="22" r="4" fill="#f97316" opacity="0.32"/>
     <circle cx="30.5" cy="22" r="4" fill="#f97316" opacity="0.32"/>
     <ellipse cx="13" cy="12" rx="4.5" ry="2.8" fill="white" opacity="0.26" transform="rotate(-30,13,12)"/>`,
@@ -969,43 +980,73 @@ const SPECIAL_SVG = {
     <line x1="10" y1="20" x2="13" y2="20" stroke="white" stroke-width="1.2" opacity="0.8"/>
     <line x1="27" y1="20" x2="30" y2="20" stroke="white" stroke-width="1.2" opacity="0.8"/>`,
 
-  // 🌑 Black Hole — swirling dark vortex, wipes row + column
+  // 🌑 Black Hole — Interstellar Gargantua style: bright accretion disc warping around event horizon
   'black-hole': () => `
-    <defs><radialGradient id="bhg" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#1e003a"/>
-      <stop offset="60%" stop-color="#3b0070"/>
-      <stop offset="100%" stop-color="#6d28d9"/>
-    </radialGradient></defs>
-    <circle cx="20" cy="20" r="18" fill="url(#bhg)"/>
-    <!-- accretion disc rings -->
-    <ellipse cx="20" cy="20" rx="16" ry="6"  fill="none" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"/>
-    <ellipse cx="20" cy="20" rx="12" ry="4.2" fill="none" stroke="#c4b5fd" stroke-width="1.2" opacity="0.5"/>
-    <ellipse cx="20" cy="20" rx="8"  ry="2.5" fill="none" stroke="#ddd6fe" stroke-width="1"   opacity="0.4"/>
-    <!-- event horizon -->
-    <circle cx="20" cy="20" r="5.5" fill="#0a0015"/>
-    <circle cx="20" cy="20" r="3"   fill="#050008"/>
-    <!-- cross sight lines -->
-    <line x1="20" y1="2" x2="20" y2="38" stroke="#a78bfa" stroke-width="0.6" opacity="0.35"/>
-    <line x1="2" y1="20" x2="38" y2="20" stroke="#a78bfa" stroke-width="0.6" opacity="0.35"/>`,
+    <defs>
+      <radialGradient id="bhbg" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#000000"/>
+        <stop offset="40%"  stop-color="#0a0010"/>
+        <stop offset="100%" stop-color="#1a0030"/>
+      </radialGradient>
+      <!-- Hot accretion disc glow -->
+      <radialGradient id="bhdisc" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#ffffff"/>
+        <stop offset="20%"  stop-color="#fffde0"/>
+        <stop offset="50%"  stop-color="#f59e0b"/>
+        <stop offset="80%"  stop-color="#b45309"/>
+        <stop offset="100%" stop-color="#7c2d12"/>
+      </radialGradient>
+    </defs>
+    <!-- Deep space background -->
+    <circle cx="20" cy="20" r="19" fill="url(#bhbg)"/>
+    <!-- Outer soft glow of disc -->
+    <ellipse cx="20" cy="20" rx="17" ry="5.5" fill="#7c2d12" opacity="0.35"/>
+    <ellipse cx="20" cy="20" rx="15" ry="4.2" fill="#b45309" opacity="0.4"/>
+    <!-- Main accretion disc — bright hot band -->
+    <ellipse cx="20" cy="20" rx="13" ry="3.2" fill="url(#bhdisc)" opacity="0.92"/>
+    <!-- Photon ring — thin bright white halo -->
+    <ellipse cx="20" cy="20" rx="7.8" ry="2.2" fill="none" stroke="white" stroke-width="0.9" opacity="0.85"/>
+    <!-- Lensed upper disc arc (gravitational lensing — disc appears above the hole too) -->
+    <path d="M7 17.5 Q20 11 33 17.5" stroke="#fbbf24" stroke-width="2.2" fill="none" opacity="0.7" stroke-linecap="round"/>
+    <path d="M9 16.5 Q20 12.5 31 16.5" stroke="#fde68a" stroke-width="1.2" fill="none" opacity="0.5" stroke-linecap="round"/>
+    <!-- Event horizon — perfectly black circle -->
+    <circle cx="20" cy="20" r="7" fill="#000000"/>
+    <!-- Subtle lensing distortion below -->
+    <path d="M8 22.5 Q20 28 32 22.5" stroke="#92400e" stroke-width="1.5" fill="none" opacity="0.45" stroke-linecap="round"/>`,
 
-  // 🌈 Quantum Explosion — rainbow swirl, removes all of one type
+  // 💥 Quantum Explosion — atom design: nucleus + three orbital rings + electrons
   'quantum-explosion': () => `
-    <defs><radialGradient id="cbg" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#1a1a2e"/>
-      <stop offset="100%" stop-color="#0d0d1a"/>
-    </radialGradient></defs>
-    <circle cx="20" cy="20" r="18" fill="url(#cbg)"/>
-    <!-- rainbow arc segments -->
-    <path d="M20 5 A15 15 0 0 1 32.99 12.5" stroke="#ff4444" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <path d="M32.99 12.5 A15 15 0 0 1 35 20"  stroke="#ff8800" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <path d="M35 20 A15 15 0 0 1 27.5 32.99"  stroke="#ffee00" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <path d="M27.5 32.99 A15 15 0 0 1 20 35"  stroke="#44dd44" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <path d="M20 35 A15 15 0 0 1 5 20"        stroke="#4488ff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <path d="M5 20 A15 15 0 0 1 20 5"         stroke="#cc44ff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <!-- bright centre -->
-    <circle cx="20" cy="20" r="6"   fill="white" opacity="0.95"/>
-    <circle cx="20" cy="20" r="3.5" fill="#e0d0ff"/>
-    <circle cx="20" cy="20" r="1.5" fill="white"/>`,
+    <defs>
+      <radialGradient id="qebg" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="#0f0f2e"/>
+        <stop offset="100%" stop-color="#05051a"/>
+      </radialGradient>
+      <radialGradient id="qenucleus" cx="40%" cy="35%" r="60%">
+        <stop offset="0%"   stop-color="#ffffff"/>
+        <stop offset="40%"  stop-color="#a5f3fc"/>
+        <stop offset="100%" stop-color="#0891b2"/>
+      </radialGradient>
+    </defs>
+    <!-- Background -->
+    <circle cx="20" cy="20" r="19" fill="url(#qebg)"/>
+    <!-- Orbital ring 1 — tilted ~30deg -->
+    <ellipse cx="20" cy="20" rx="15" ry="5" fill="none" stroke="#22d3ee" stroke-width="1.2" opacity="0.7" transform="rotate(0,20,20)"/>
+    <!-- Orbital ring 2 — tilted 60deg -->
+    <ellipse cx="20" cy="20" rx="15" ry="5" fill="none" stroke="#818cf8" stroke-width="1.2" opacity="0.7" transform="rotate(60,20,20)"/>
+    <!-- Orbital ring 3 — tilted 120deg -->
+    <ellipse cx="20" cy="20" rx="15" ry="5" fill="none" stroke="#f472b6" stroke-width="1.2" opacity="0.7" transform="rotate(120,20,20)"/>
+    <!-- Nucleus — glowing centre -->
+    <circle cx="20" cy="20" r="4.2" fill="url(#qenucleus)"/>
+    <circle cx="20" cy="20" r="2.5" fill="white" opacity="0.9"/>
+    <!-- Electrons on ring 1 -->
+    <circle cx="35" cy="20" r="1.8" fill="#22d3ee"/>
+    <circle cx="5"  cy="20" r="1.8" fill="#22d3ee"/>
+    <!-- Electrons on ring 2 -->
+    <circle cx="27.5" cy="7"  r="1.8" fill="#818cf8" transform="rotate(60,20,20)"/>
+    <circle cx="12.5" cy="33" r="1.8" fill="#818cf8" transform="rotate(60,20,20)"/>
+    <!-- Electrons on ring 3 -->
+    <circle cx="27.5" cy="7"  r="1.8" fill="#f472b6" transform="rotate(120,20,20)"/>
+    <circle cx="12.5" cy="33" r="1.8" fill="#f472b6" transform="rotate(120,20,20)"/>`,
 };
 
 function updateCell(r, c) {
@@ -1242,8 +1283,8 @@ async function handleSwap(r1, c1, r2, c2) {
       showPopup('🌑 BLACK HOLE!');
       soundSpecial();
     } else if (special.special === SPECIAL_PULSAR) {
-      // Wipe entire row + column through the Pulsar's OWN position
-      const pr = specialPos.r, pc = specialPos.c;
+      // Wipe entire row + column through where the Pulsar LANDS after the swap
+      const pr = targetPos.r, pc = targetPos.c;
       for (let cc = 0; cc < COLS; cc++) blastCells.add(pr + ',' + cc);
       for (let rr = 0; rr < ROWS; rr++) blastCells.add(rr + ',' + pc);
       showPopup('⭐ PULSAR BLAST!');
