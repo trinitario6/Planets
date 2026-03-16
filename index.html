@@ -18,7 +18,7 @@
   --accent:#7eb8ff;
   --cell:  44px;
   --cols:  8;
-  --rows:  8;
+  --rows:  10;
 }
 html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:'Segoe UI',system-ui,sans-serif; }
 
@@ -60,18 +60,28 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 #level-label { font-size:9px; color:#4a6a9a; letter-spacing:2px; text-transform:uppercase; }
 #level-val { font-size:22px; font-weight:700; color:#c084fc; line-height:1; }
 
-/* ── Progress bar (orbit ring style) ── */
+/* ── Progress bar with rocket ── */
 #progress-wrap {
-  width:100%; height:6px;
+  width:100%; height:14px;
   background:rgba(126,184,255,0.08);
-  border-radius:3px; overflow:hidden;
+  border-radius:7px;
   border:1px solid rgba(126,184,255,0.12);
+  position:relative; overflow:visible;
 }
 #progress-bar {
   height:100%;
   background:linear-gradient(90deg,#3b6fd4,#7eb8ff,#c084fc);
-  border-radius:3px; transition:width 0.5s ease; width:0%;
+  border-radius:7px; transition:width 0.5s ease; width:0%;
   box-shadow:0 0 8px rgba(126,184,255,0.5);
+}
+#progress-rocket {
+  position:absolute;
+  top:50%; transform:translateY(-50%) rotate(90deg);
+  font-size:18px; line-height:1;
+  transition:left 0.5s ease;
+  pointer-events:none;
+  filter:drop-shadow(0 0 6px rgba(255,200,100,0.9));
+  left:0%;
 }
 
 /* ── Board ── */
@@ -175,29 +185,24 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 }
 @keyframes floatUp { 0%{opacity:1;transform:translateY(0) scale(1);} 100%{opacity:0;transform:translateY(-55px) scale(1.3);} }
 
-/* ── Board shake ── */
-#board-wrap.shake { animation:boardShake 0.38s ease; }
-@keyframes boardShake {
-  0%,100%{transform:translate(0,0);}
-  15%{transform:translate(-6px,3px);}
-  35%{transform:translate(6px,-3px);}
-  55%{transform:translate(-4px,2px);}
-  75%{transform:translate(5px,-2px);}
-}
+/* ── Board shake tiers ── */
+#board-wrap.shake-sm { animation:shakeSm 0.3s ease; }
+#board-wrap.shake-md { animation:shakeMd 0.4s ease; }
+#board-wrap.shake-lg { animation:shakeLg 0.5s ease; }
+#board-wrap.shake-epic { animation:shakeEpic 0.6s ease; }
+@keyframes shakeSm  { 0%,100%{transform:translate(0,0);} 25%{transform:translate(-4px,2px);} 75%{transform:translate(4px,-2px);} }
+@keyframes shakeMd  { 0%,100%{transform:translate(0,0);} 15%{transform:translate(-7px,3px);} 35%{transform:translate(7px,-3px);} 55%{transform:translate(-5px,2px);} 75%{transform:translate(5px,-2px);} }
+@keyframes shakeLg  { 0%,100%{transform:translate(0,0);} 10%{transform:translate(-10px,4px) rotate(-1deg);} 30%{transform:translate(10px,-4px) rotate(1deg);} 50%{transform:translate(-8px,3px) rotate(-0.5deg);} 70%{transform:translate(8px,-3px) rotate(0.5deg);} 90%{transform:translate(-4px,1px);} }
+@keyframes shakeEpic{ 0%,100%{transform:translate(0,0) scale(1);} 8%{transform:translate(-14px,6px) rotate(-2deg) scale(1.02);} 20%{transform:translate(14px,-6px) rotate(2deg) scale(0.98);} 35%{transform:translate(-10px,5px) rotate(-1.5deg);} 50%{transform:translate(12px,-4px) rotate(1.5deg);} 65%{transform:translate(-8px,3px) rotate(-1deg);} 80%{transform:translate(7px,-2px);} }
+
+/* ── Special gems ── */
+.cell.special-black-hole svg { filter: drop-shadow(0 0 10px rgba(180,0,255,0.9)) drop-shadow(0 0 20px rgba(100,0,200,0.7)) !important; }
+.cell.special-pulsar svg     { filter: drop-shadow(0 0 10px rgba(255,200,50,0.9))  drop-shadow(0 0 20px rgba(255,150,0,0.7))  !important; }
 
 /* ── Moves display ── */
-#moves-wrap { width:100%; display:flex; align-items:center; justify-content:center; gap:5px; flex-wrap:wrap; }
-.move-dot {
-  width:9px; height:9px; border-radius:50%;
-  background:rgba(126,184,255,0.15);
-  border:1px solid rgba(126,184,255,0.2);
-  transition:all 0.2s;
-}
-.move-dot.active {
-  background:#3b6fd4;
-  border-color:#7eb8ff;
-  box-shadow:0 0 5px #7eb8ff;
-}
+#moves-wrap { width:100%; display:flex; align-items:center; justify-content:center; gap:6px; }
+#moves-label { font-size:9px; color:#4a6a9a; letter-spacing:2px; text-transform:uppercase; }
+#moves-count { font-size:22px; font-weight:800; color:#7eb8ff; min-width:26px; text-align:center; }
 
 /* ── Big popup ── */
 .big-popup {
@@ -297,9 +302,15 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
     <div id="level-box"><div id="level-label">Sector</div><div id="level-val">1</div></div>
     <div class="hbox"><div class="hlabel">Best</div><div class="hval gold" id="best">0</div></div>
   </div>
-  <div id="progress-wrap"><div id="progress-bar"></div></div>
+  <div id="progress-wrap">
+    <div id="progress-bar"></div>
+    <div id="progress-rocket">🚀</div>
+  </div>
   <div id="board-wrap"><div id="board"></div></div>
-  <div id="moves-wrap"></div>
+  <div id="moves-wrap">
+    <span id="moves-label">Moves</span>
+    <span id="moves-count">20</span>
+  </div>
 </div>
 
 <button id="mute-btn">🔊</button>
@@ -372,31 +383,124 @@ function getCtx() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
-function tone(freq, dur, vol=0.18, type='sine') {
+
+function tone(freq, dur, vol=0.18, type='sine', startTime=0) {
   if (muted) return;
   try {
-    const ctx = getCtx(), o = ctx.createOscillator(), g = ctx.createGain();
+    const ctx = getCtx();
+    const o = ctx.createOscillator(), g = ctx.createGain();
     o.connect(g); g.connect(ctx.destination);
     o.type = type; o.frequency.value = freq;
-    g.gain.setValueAtTime(vol, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
-    o.start(); o.stop(ctx.currentTime + dur);
+    const t = ctx.currentTime + startTime;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.start(t); o.stop(t + dur);
   } catch(e) {}
 }
-// Spacey bleepy sounds
-function soundSwap()    { tone(380, 0.07, 0.12, 'sine'); setTimeout(() => tone(520, 0.06, 0.1, 'sine'), 60); }
-function soundMatch(n)  { [440,554,659,880].slice(0, Math.min(n,4)).forEach((f,i) => setTimeout(()=>tone(f,0.18,0.18,'square'),i*55)); }
-function soundNoMatch() { tone(180, 0.15, 0.15, 'sawtooth'); }
-function soundLevelUp() { [440,554,659,880,1108].forEach((f,i) => setTimeout(()=>tone(f,0.28,0.2,'sine'),i*80)); }
+
+function noise(dur, vol, filterFreq, startTime=0) {
+  if (muted) return;
+  try {
+    const ctx = getCtx();
+    const sr = ctx.sampleRate;
+    const buf = ctx.createBuffer(1, sr * dur, sr);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const filt = ctx.createBiquadFilter();
+    filt.type = 'bandpass';
+    filt.frequency.value = filterFreq;
+    filt.Q.value = 0.8;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(vol, ctx.currentTime + startTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + dur);
+    src.connect(filt); filt.connect(g); g.connect(ctx.destination);
+    src.start(ctx.currentTime + startTime);
+  } catch(e) {}
+}
+
+// Swap: soft double-blip
+function soundSwap() {
+  tone(480, 0.06, 0.1, 'sine', 0);
+  tone(640, 0.05, 0.08, 'sine', 0.06);
+}
+
+// No match: low descending thud
+function soundNoMatch() {
+  tone(220, 0.18, 0.15, 'sawtooth', 0);
+  tone(160, 0.14, 0.1, 'sawtooth', 0.08);
+}
+
+// Cascade 1 — delicate bell chime: pure sine tones, light and airy
+function soundCascade1() {
+  [1047, 1319, 1568].forEach((f, i) => tone(f, 0.25, 0.14, 'sine', i * 0.06));
+}
+
+// Cascade 2 — bright ring: higher harmonics, slightly fuller
+function soundCascade2() {
+  [784, 1047, 1319, 1568].forEach((f, i) => tone(f, 0.22, 0.17, 'sine', i * 0.055));
+  tone(1047, 0.3, 0.08, 'triangle', 0.1);
+}
+
+// Cascade 3 — resonant gong: square wave with decay, deeper and meatier
+function soundCascade3() {
+  [523, 659, 784, 1047, 1319].forEach((f, i) => {
+    tone(f, 0.3, 0.2, 'square', i * 0.05);
+  });
+  tone(261, 0.4, 0.15, 'sine', 0); // deep bass note underneath
+  noise(0.2, 0.08, 2000, 0.1);     // subtle shimmer
+}
+
+// Cascade 4+ — full explosion: noise burst + descending bomb + impact crunch
+function soundCascade4() {
+  // Impact thud
+  tone(80, 0.5, 0.35, 'sine', 0);
+  tone(60, 0.4, 0.25, 'sine', 0.05);
+  // Explosion noise burst — filtered white noise
+  noise(0.4, 0.5, 800, 0);
+  noise(0.3, 0.3, 300, 0.05);
+  noise(0.25, 0.2, 150, 0.1);
+  // Triumphant rising arp on top
+  [440, 554, 659, 880, 1108].forEach((f, i) => tone(f, 0.2, 0.18, 'sawtooth', 0.05 + i * 0.06));
+  // High shimmer tail
+  [1568, 2093].forEach((f, i) => tone(f, 0.3, 0.1, 'sine', 0.2 + i * 0.05));
+}
+
+// Match sound — dispatches to the right cascade tier
+function soundMatch(cascade) {
+  if      (cascade <= 1) soundCascade1();
+  else if (cascade === 2) soundCascade2();
+  else if (cascade === 3) soundCascade3();
+  else                    soundCascade4();
+}
+
+// Level up: majestic ascending fanfare
+function soundLevelUp() {
+  [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, 0.35, 0.22, 'sine', i * 0.09));
+  tone(261, 0.6, 0.18, 'sine', 0);
+  noise(0.15, 0.12, 1200, 0.3);
+}
+
+// Special gem activation: sci-fi zap
+function soundSpecial() {
+  tone(1200, 0.08, 0.28, 'square', 0);
+  tone(800,  0.12, 0.22, 'square', 0.05);
+  tone(400,  0.2,  0.18, 'sawtooth', 0.1);
+  noise(0.18, 0.2, 1000, 0.05);
+}
+
 document.getElementById('mute-btn').addEventListener('click', () => {
   muted = !muted;
   document.getElementById('mute-btn').textContent = muted ? '🔇' : '🔊';
 });
 
 // ═══ GAME CONSTANTS ═══════════════════════════════════════════════════════════
-const COLS = 8, ROWS = 8;
-// 6 planet types: Mercury, Venus, Earth, Mars, Jupiter, Saturn
+const COLS = 8, ROWS = 10;
 const PLANET_TYPES = 8;
+// Special gem types (stored in gem.special)
+const SPECIAL_BLACK_HOLE = 'black-hole'; // clears entire row + column
+const SPECIAL_PULSAR     = 'pulsar';     // blasts 3x3 area around it
 
 const LEVEL_TARGETS = [2000, 5000, 10000, 18000, 30000, 46000, 65000, 88000, 115000, 147000];
 const BASE_MOVES = { kid: 30, adult: 20 };
@@ -668,14 +772,48 @@ function makeCell(r, c) {
   const planet = board[r][c];
   if (planet) {
     div.classList.add('gem', 'p' + planet.type);
+    if (planet.special) div.classList.add('special-' + planet.special);
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 40 40');
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    svg.innerHTML = PLANET_SVG[planet.type]();
+    svg.innerHTML = PLANET_SVG[planet.type]() + SPECIAL_OVERLAY_SVG[planet.special || '']();
     div.appendChild(svg);
   }
   return div;
 }
+
+// SVG overlays drawn on top of any planet for special types
+const SPECIAL_OVERLAY_SVG = {
+  '': () => '',
+  // Black Hole: dark swirling vortex overlay + crosshair
+  'black-hole': () => `
+    <circle cx="20" cy="20" r="17" fill="rgba(60,0,120,0.55)"/>
+    <circle cx="20" cy="20" r="10" fill="rgba(20,0,60,0.7)"/>
+    <circle cx="20" cy="20" r="5"  fill="rgba(0,0,20,0.9)"/>
+    <path d="M20 3 Q30 12 28 20 Q26 28 20 30 Q14 32 12 24 Q10 16 20 3Z"
+          fill="none" stroke="rgba(180,100,255,0.8)" stroke-width="1.2"/>
+    <path d="M20 37 Q10 28 12 20 Q14 12 20 10 Q26 8 28 16 Q30 24 20 37Z"
+          fill="none" stroke="rgba(180,100,255,0.6)" stroke-width="0.9"/>
+    <circle cx="20" cy="20" r="2.5" fill="white" opacity="0.9"/>
+    <line x1="20" y1="14" x2="20" y2="26" stroke="white" stroke-width="0.8" opacity="0.7"/>
+    <line x1="14" y1="20" x2="26" y2="20" stroke="white" stroke-width="0.8" opacity="0.7"/>`,
+  // Pulsar: radiating ring burst overlay
+  'pulsar': () => `
+    <circle cx="20" cy="20" r="17" fill="rgba(255,180,0,0.3)"/>
+    <circle cx="20" cy="20" r="12" fill="rgba(255,220,50,0.25)"/>
+    <circle cx="20" cy="20" r="17" fill="none" stroke="rgba(255,220,50,0.9)" stroke-width="2.5"/>
+    <circle cx="20" cy="20" r="12" fill="none" stroke="rgba(255,180,0,0.7)" stroke-width="1.5"/>
+    <circle cx="20" cy="20" r="7"  fill="none" stroke="rgba(255,255,100,0.6)" stroke-width="1"/>
+    <circle cx="20" cy="20" r="3"  fill="rgba(255,255,200,0.95)"/>
+    <line x1="20" y1="1"  x2="20" y2="6"  stroke="rgba(255,230,50,0.85)" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="20" y1="34" x2="20" y2="39" stroke="rgba(255,230,50,0.85)" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="1"  y1="20" x2="6"  y2="20" stroke="rgba(255,230,50,0.85)" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="34" y1="20" x2="39" y2="20" stroke="rgba(255,230,50,0.85)" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="5"  y1="5"  x2="9"  y2="9"  stroke="rgba(255,230,50,0.6)" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="35" y1="5"  x2="31" y2="9"  stroke="rgba(255,230,50,0.6)" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="5"  y1="35" x2="9"  y2="31" stroke="rgba(255,230,50,0.6)" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="35" y1="35" x2="31" y2="31" stroke="rgba(255,230,50,0.6)" stroke-width="1.2" stroke-linecap="round"/>`,
+};
 
 function updateCell(r, c) {
   const el = document.getElementById('board');
@@ -690,19 +828,15 @@ function updateScore() {
   document.getElementById('best').textContent = best;
   document.getElementById('level-val').textContent = level;
   const target = targetForLevel(level);
-  document.getElementById('progress-bar').style.width = Math.min(score / target * 100, 100) + '%';
+  const pct = Math.min(score / target * 100, 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  // Rocket tracks along the bar — clamp so it stays visible
+  const rocket = document.getElementById('progress-rocket');
+  if (rocket) rocket.style.left = Math.min(Math.max(pct, 2), 96) + '%';
 }
 
 function updateMoves() {
-  const wrap = document.getElementById('moves-wrap');
-  wrap.innerHTML = '';
-  const max = movesForLevel(level);
-  const dots = Math.min(max, 30);
-  for (let i = 0; i < dots; i++) {
-    const d = document.createElement('div');
-    d.className = 'move-dot' + (i < movesLeft ? ' active' : '');
-    wrap.appendChild(d);
-  }
+  document.getElementById('moves-count').textContent = movesLeft;
 }
 
 // ═══ EVENTS ═══════════════════════════════════════════════════════════════════
@@ -815,7 +949,7 @@ async function handleSwap(r1, c1, r2, c2) {
   const tmp = board[r1][c1]; board[r1][c1] = board[r2][c2]; board[r2][c2] = tmp;
   updateCell(r1, c1); updateCell(r2, c2);
 
-  const matches = findMatches();
+  const { matched: matches, specials } = findMatches();
   if (matches.size === 0) {
     await wait(110);
     const t2 = board[r1][c1]; board[r1][c1] = board[r2][c2]; board[r2][c2] = t2;
@@ -832,41 +966,66 @@ async function handleSwap(r1, c1, r2, c2) {
 
   movesLeft--;
   updateMoves();
-  await resolveMatches(matches);
+  await resolveMatches(matches, specials);
   checkGameState();
   animating = false;
 }
 
 // ═══ MATCH FINDING ════════════════════════════════════════════════════════════
+// Returns { matched: Set of "r,c", specials: Map of "r,c" -> special type }
 function findMatches() {
-  const matched = new Set();
+  const matched  = new Set();
+  const specials = new Map(); // cells that should become a special gem
+
+  function processRun(cells, runType) {
+    if (cells.length < 3) return;
+    cells.forEach(k => matched.add(k));
+    // 5+ in a row → Black Hole at centre
+    if (cells.length >= 5) {
+      const mid = cells[Math.floor(cells.length / 2)];
+      specials.set(mid, { type: runType, special: SPECIAL_BLACK_HOLE });
+    }
+    // Exactly 4 in a row → Pulsar at centre
+    else if (cells.length === 4) {
+      const mid = cells[1];
+      specials.set(mid, { type: runType, special: SPECIAL_PULSAR });
+    }
+  }
+
+  // Horizontal runs
   for (let r = 0; r < ROWS; r++) {
-    let run = 1;
+    let run = [r + ',' + 0], runType = board[r][0]?.type;
     for (let c = 1; c <= COLS; c++) {
-      if (c < COLS && board[r][c] && board[r][c-1] && !board[r][c].special && !board[r][c-1].special && board[r][c].type === board[r][c-1].type) {
-        run++;
+      const gem = c < COLS ? board[r][c] : null;
+      if (gem && !gem.special && gem.type === runType && !board[r][c-1]?.special) {
+        run.push(r + ',' + c);
       } else {
-        if (run >= 3) for (let k = c-run; k < c; k++) matched.add(r+','+k);
-        run = 1;
+        processRun(run, runType);
+        run = c < COLS ? [r + ',' + c] : [];
+        runType = gem?.type;
       }
     }
   }
+  // Vertical runs
   for (let c = 0; c < COLS; c++) {
-    let run = 1;
+    let run = [0 + ',' + c], runType = board[0][c]?.type;
     for (let r = 1; r <= ROWS; r++) {
-      if (r < ROWS && board[r][c] && board[r-1][c] && !board[r][c].special && !board[r-1][c].special && board[r][c].type === board[r-1][c].type) {
-        run++;
+      const gem = r < ROWS ? board[r][c] : null;
+      if (gem && !gem.special && gem.type === runType && !board[r-1][c]?.special) {
+        run.push(r + ',' + c);
       } else {
-        if (run >= 3) for (let k = r-run; k < r; k++) matched.add(k+','+c);
-        run = 1;
+        processRun(run, runType);
+        run = r < ROWS ? [r + ',' + c] : [];
+        runType = gem?.type;
       }
     }
   }
-  return matched;
+
+  return { matched, specials };
 }
 
 // ═══ RESOLVE MATCHES ══════════════════════════════════════════════════════════
-async function resolveMatches(matches) {
+async function resolveMatches(matches, specials) {
   let cascade = 0;
   while (matches.size > 0) {
     cascade++;
@@ -874,44 +1033,85 @@ async function resolveMatches(matches) {
     score += pts;
     if (score > best) { best = score; localStorage.setItem('planet_crush_best_' + gameMode, best); }
     updateScore();
-    soundMatch(Math.min(cascade + 1, 4));
+    soundMatch(cascade);
 
-    // Space-themed cascade popups
-    if (cascade === 2) showPopup('✨ Sebtacular! ✨');
-    else if (cascade === 3) showPopup(_popToggle++ % 2 === 0 ? '💫 Lawsome! 💫' : '💥 Siuperb! 💥');
+    if (cascade === 2) {
+      const t = _popToggle++ % 4;
+      if (t === 0) showPopup('✨ Sebtacular! ✨');
+      else if (t === 1) showPopup('💫 Lawsome! 💫');
+      else if (t === 2) showPopup('🌟 Stellar! 🌟');
+      else              showPopup('🪐 Out of this World! 🪐');
+    }
+    else if (cascade === 3) showPopup('💥 Siuperb! 💥');
     else if (cascade >= 4) showPopup('🚀 ORBITAL CRUSH! 🚀');
 
     showScorePop(pts);
 
-    const boardEl = document.getElementById('board');
-
-    // Phase 1: glow + burst animation (0.22s glow then 0.32s burst = 0.54s total)
+    // Check if any matched cell is itself a special — trigger its extra effect
+    const extraCells = new Set();
     matches.forEach(key => {
-      const [r,c] = key.split(',').map(Number);
+      const [r, c] = key.split(',').map(Number);
+      const gem = board[r][c];
+      if (!gem || !gem.special) return;
+      if (gem.special === SPECIAL_BLACK_HOLE) {
+        // Wipe entire row + column
+        for (let cc = 0; cc < COLS; cc++) extraCells.add(r + ',' + cc);
+        for (let rr = 0; rr < ROWS; rr++) extraCells.add(rr + ',' + c);
+        showPopup('🌑 BLACK HOLE!');
+        soundSpecial();
+      } else if (gem.special === SPECIAL_PULSAR) {
+        // Blast 3×3 around it
+        for (let dr = -1; dr <= 1; dr++)
+          for (let dc = -1; dc <= 1; dc++) {
+            const nr = r + dr, nc = c + dc;
+            if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) extraCells.add(nr + ',' + nc);
+          }
+        showPopup('⭐ PULSAR BLAST!');
+        soundSpecial();
+      }
+    });
+    extraCells.forEach(k => matches.add(k));
+
+    const boardEl = document.getElementById('board');
+    matches.forEach(key => {
+      const [r, c] = key.split(',').map(Number);
       boardEl.children[r*COLS+c]?.classList.add('matched');
     });
 
-    if (matches.size >= 4) {
-      const wrap = document.getElementById('board-wrap');
-      wrap.classList.add('shake');
-      wrap.addEventListener('animationend', () => wrap.classList.remove('shake'), { once: true });
+    const wrap = document.getElementById('board-wrap');
+    wrap.classList.remove('shake-sm','shake-md','shake-lg','shake-epic');
+    void wrap.offsetWidth;
+    const shakeClass = cascade >= 4 ? 'shake-epic'
+                     : cascade === 3 ? 'shake-lg'
+                     : cascade === 2 ? 'shake-md'
+                     : matches.size >= 5 ? 'shake-sm'
+                     : '';
+    if (shakeClass) {
+      wrap.classList.add(shakeClass);
+      wrap.addEventListener('animationend', () => wrap.classList.remove('shake-sm','shake-md','shake-lg','shake-epic'), { once: true });
     }
 
-    await wait(560); // full glow+burst duration
+    await wait(560);
 
-    // Remove matched cells from board data
+    // Remove matched — but leave cells that should become specials
     matches.forEach(key => {
-      const [r,c] = key.split(',').map(Number);
-      board[r][c] = null;
+      const [r, c] = key.split(',').map(Number);
+      if (specials?.has(key) && !extraCells.has(key)) {
+        // Upgrade to special instead of removing
+        const s = specials.get(key);
+        board[r][c] = { type: s.type, special: s.special };
+      } else {
+        board[r][c] = null;
+      }
     });
 
-    // Drop existing planets down with animated fall
     await dropPlanetsAnimated();
-
-    // Fill gaps from top with staggered entry
     await fillGapsAnimated();
 
-    matches = findMatches();
+    // Re-find matches for next cascade
+    const next = findMatches();
+    matches  = next.matched;
+    specials = next.specials;
   }
 }
 
@@ -1023,12 +1223,12 @@ function hasValidMove() {
     for (let c = 0; c < COLS; c++) {
       if (c + 1 < COLS) {
         const t = board[r][c]; board[r][c] = board[r][c+1]; board[r][c+1] = t;
-        if (findMatches().size > 0) { const t2=board[r][c];board[r][c]=board[r][c+1];board[r][c+1]=t2; return true; }
+        if (findMatches().matched.size > 0) { const t2=board[r][c];board[r][c]=board[r][c+1];board[r][c+1]=t2; return true; }
         const t2=board[r][c];board[r][c]=board[r][c+1];board[r][c+1]=t2;
       }
       if (r + 1 < ROWS) {
         const t = board[r][c]; board[r][c] = board[r+1][c]; board[r+1][c] = t;
-        if (findMatches().size > 0) { const t2=board[r][c];board[r][c]=board[r+1][c];board[r+1][c]=t2; return true; }
+        if (findMatches().matched.size > 0) { const t2=board[r][c];board[r][c]=board[r+1][c];board[r+1][c]=t2; return true; }
         const t2=board[r][c];board[r][c]=board[r+1][c];board[r+1][c]=t2;
       }
     }
@@ -1105,8 +1305,11 @@ function setResponsiveSize() {
   const vw = window.innerWidth - 20;
   // Reserve space for: title~28, header~36, progress~14, moves~22, gaps~30 = ~130px
   const vh = window.innerHeight - 130;
-  const cell = Math.floor((Math.min(vw, vh) - 12 - 7 * 3) / 8);
-  document.documentElement.style.setProperty('--cell', Math.max(cell, 28) + 'px');
+  // Board is 8 wide × 10 tall — fit whichever axis is tighter
+  const cellByWidth  = Math.floor((vw      - 12 - 7 * 3) / 8);   // 8 cols + gap
+  const cellByHeight = Math.floor((vh      - 12 - 9 * 3) / 10);  // 10 rows + gap
+  const cell = Math.min(cellByWidth, cellByHeight);
+  document.documentElement.style.setProperty('--cell', Math.max(cell, 26) + 'px');
 }
 
 // ═══ WIRING ═══════════════════════════════════════════════════════════════════
