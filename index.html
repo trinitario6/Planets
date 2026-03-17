@@ -744,8 +744,8 @@ document.getElementById('mute-btn').addEventListener('click', () => {
 const COLS = 7, ROWS = 10;
 const PLANET_TYPES = 8;
 // Special object types
-const SPECIAL_PULSAR     = 'pulsar';      // match 4 → wipes full row + column
-const SPECIAL_BLACK_HOLE = 'black-hole';  // match 5 → explodes 3×3 area
+const SPECIAL_PULSAR     = 'pulsar';      // match 5+ → wipes full row + column
+const SPECIAL_BLACK_HOLE = 'black-hole';  // match 4 → explodes 3×3 area
 const SPECIAL_QUANTUM_EXPLOSION = 'quantum-explosion';  // match L/T shape → removes ALL of one planet type
 
 const LEVEL_TARGETS = [2000, 5000, 10000, 18000, 30000, 46000, 65000, 88000, 115000, 147000];
@@ -1484,11 +1484,11 @@ function findMatches() {
     if (cells.length < 3 || runType === undefined || runType === null) return;
     cells.forEach(k => matched.add(k));
     if (cells.length >= 5) {
-      // 5+ in a row → Black Hole (row + column wipe)
-      specials.set(cells[Math.floor(cells.length / 2)], { type: runType, special: SPECIAL_BLACK_HOLE });
-    } else if (cells.length === 4) {
-      // 4 in a row → Pulsar (3×3 explosion)
+      // 5+ in a row → Pulsar (row + column wipe)
       specials.set(cells[Math.floor(cells.length / 2)], { type: runType, special: SPECIAL_PULSAR });
+    } else if (cells.length === 4) {
+      // 4 in a row → Black Hole (3×3 explosion)
+      specials.set(cells[Math.floor(cells.length / 2)], { type: runType, special: SPECIAL_BLACK_HOLE });
     }
   }
 
@@ -2020,8 +2020,8 @@ setResponsiveSize();
   // Build special cards on page 3
   function buildSpecials() {
     const specDefs = [
-      { id:'tut-sp-pulsar',    svg: SPECIAL_SVG['pulsar'],       name:'⭐ Pulsar',        how:'Match 4 in a row',         desc:'Wipes the entire row and column it sits on — a cross blast across the board.' },
-      { id:'tut-sp-blackhole', svg: SPECIAL_SVG['black-hole'],   name:'🌑 Black Hole',    how:'Match 5 or more in a row', desc:'Explodes the 3×3 area around it, destroying up to 9 nearby planets.' },
+      { id:'tut-sp-pulsar',    svg: SPECIAL_SVG['pulsar'],       name:'⭐ Pulsar',        how:'Match 5 or more in a row', desc:'Wipes the entire row and column it sits on — a cross blast across the board.' },
+      { id:'tut-sp-blackhole', svg: SPECIAL_SVG['black-hole'],   name:'🌑 Black Hole',    how:'Match 4 in a row',         desc:'Explodes the 3×3 area around it, destroying up to 9 nearby planets.' },
       { id:'tut-sp-quantum',   svg: SPECIAL_SVG['quantum-explosion'], name:'💥 Quantum Explosion',  how:'Match an L or T shape',    desc:'Destroys every planet of the same type across the whole board — quantum entanglement!' },
     ];
     specDefs.forEach(({ id, svg, name, how, desc }) => {
