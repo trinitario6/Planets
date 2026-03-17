@@ -823,13 +823,17 @@ let _popToggle = 0;
 
 // ═══ BOARD INIT ═══════════════════════════════════════════════════════════════
 function randomPlanet() {
+  return { type: Math.floor(Math.random() * PLANET_TYPES), special: null };
+}
+
+// Used when filling gaps during play — weighted chance of spawning a special
+function randomGem() {
   const type = Math.floor(Math.random() * PLANET_TYPES);
   const roll = Math.random();
-  // Weighted special spawn: Black Hole most common, Pulsar medium, Quantum rare
   let special = null;
-  if      (roll < 0.015) special = SPECIAL_QUANTUM_EXPLOSION;  // 1.5%
-  else if (roll < 0.055) special = SPECIAL_PULSAR;              // 4%
-  else if (roll < 0.135) special = SPECIAL_BLACK_HOLE;          // 8%
+  if      (roll < 0.015) special = SPECIAL_QUANTUM_EXPLOSION;
+  else if (roll < 0.055) special = SPECIAL_PULSAR;
+  else if (roll < 0.135) special = SPECIAL_BLACK_HOLE;
   return { type, special };
 }
 
@@ -1857,7 +1861,7 @@ async function fillGapsAnimated() {
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       if (board[r][c] === null) {
-        board[r][c] = randomPlanet();
+        board[r][c] = randomGem();
         newCells.push({ r, c });
       }
     }
