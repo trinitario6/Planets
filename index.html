@@ -812,7 +812,7 @@ const SPECIAL_PULSAR     = 'pulsar';      // match 5+ → wipes full row + colum
 const SPECIAL_BLACK_HOLE = 'black-hole';  // match 4 → explodes 3×3 area
 const SPECIAL_QUANTUM_EXPLOSION = 'quantum-explosion';  // match L/T shape → removes ALL of one planet type
 
-const LEVEL_TARGETS = [2000, 5000, 10000, 18000, 30000, 46000, 65000, 88000, 115000, 147000];
+const LEVEL_TARGETS = [1500, 4000, 7500, 12500, 20000, 29000, 40000, 53000, 68000, 85000];
 const BASE_MOVES = { kid: 30, adult: 20 };
 
 let board = [];
@@ -879,26 +879,26 @@ function renderBoard() {
 // Colors: PURPLE · HOT PINK · BRIGHT CYAN · CRIMSON RED · VIVID ORANGE · LIME GREEN
 const PLANET_SVG = [
 
-  // 0: Mercury — VIVID PURPLE — sleepy face, craters
+  // 0: Mercury — GREY — sleepy face, craters
   () => `
     <defs><radialGradient id="m0g" cx="38%" cy="32%" r="60%">
-      <stop offset="0%" stop-color="#e9d5ff"/>
-      <stop offset="40%" stop-color="#a855f7"/>
-      <stop offset="100%" stop-color="#4c1d95"/>
+      <stop offset="0%" stop-color="#e5e7eb"/>
+      <stop offset="40%" stop-color="#9ca3af"/>
+      <stop offset="100%" stop-color="#374151"/>
     </radialGradient></defs>
     <circle cx="20" cy="20" r="16" fill="url(#m0g)" filter="url(#glow0)"/>
-    <defs><filter id="glow0"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#a855f7" flood-opacity="0.9"/></filter></defs>
-    <circle cx="20" cy="20" r="16" fill="none" stroke="#c084fc" stroke-width="1.2" opacity="0.7"/>
-    <circle cx="12.5" cy="14.5" r="3" fill="#4c1d95" opacity="0.6"/>
-    <circle cx="12.5" cy="14.5" r="3" fill="none" stroke="#d8b4fe" stroke-width="0.7" opacity="0.5"/>
-    <circle cx="27" cy="25" r="2" fill="#4c1d95" opacity="0.55"/>
-    <circle cx="27" cy="25" r="2" fill="none" stroke="#d8b4fe" stroke-width="0.7" opacity="0.45"/>
-    <circle cx="17" cy="28" r="1.4" fill="#4c1d95" opacity="0.5"/>
-    <path d="M13 19.5 Q15.5 17.5 18 19.5" stroke="#2e1065" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-    <path d="M22 19.5 Q24.5 17.5 27 19.5" stroke="#2e1065" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-    <path d="M13 19.5 Q15.5 21 18 19.5" stroke="#2e1065" stroke-width="0.8" fill="#2e1065" opacity="0.5"/>
-    <path d="M22 19.5 Q24.5 21 27 19.5" stroke="#2e1065" stroke-width="0.8" fill="#2e1065" opacity="0.5"/>
-    <path d="M16 25 Q20 27.5 24 25" stroke="#2e1065" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <defs><filter id="glow0"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#9ca3af" flood-opacity="0.8"/></filter></defs>
+    <circle cx="20" cy="20" r="16" fill="none" stroke="#d1d5db" stroke-width="1.2" opacity="0.7"/>
+    <circle cx="12.5" cy="14.5" r="3" fill="#374151" opacity="0.6"/>
+    <circle cx="12.5" cy="14.5" r="3" fill="none" stroke="#e5e7eb" stroke-width="0.7" opacity="0.5"/>
+    <circle cx="27" cy="25" r="2" fill="#374151" opacity="0.55"/>
+    <circle cx="27" cy="25" r="2" fill="none" stroke="#e5e7eb" stroke-width="0.7" opacity="0.45"/>
+    <circle cx="17" cy="28" r="1.4" fill="#374151" opacity="0.5"/>
+    <path d="M13 19.5 Q15.5 17.5 18 19.5" stroke="#1f2937" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M22 19.5 Q24.5 17.5 27 19.5" stroke="#1f2937" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M13 19.5 Q15.5 21 18 19.5" stroke="#1f2937" stroke-width="0.8" fill="#1f2937" opacity="0.5"/>
+    <path d="M22 19.5 Q24.5 21 27 19.5" stroke="#1f2937" stroke-width="0.8" fill="#1f2937" opacity="0.5"/>
+    <path d="M16 25 Q20 27.5 24 25" stroke="#1f2937" stroke-width="1.6" fill="none" stroke-linecap="round"/>
     <ellipse cx="13" cy="12" rx="4.5" ry="2.8" fill="white" opacity="0.32" transform="rotate(-30,13,12)"/>`,
 
   // 1: Venus — WARM ORANGE — cheeky wink, toxic cloud bands
@@ -1009,22 +1009,22 @@ const PLANET_SVG = [
     <ellipse cx="20" cy="25.5" rx="2.3" ry="2" fill="#5c2a0a" opacity="0.7"/>
     <ellipse cx="13" cy="12" rx="4.5" ry="2.8" fill="white" opacity="0.25" transform="rotate(-30,13,12)"/>`,
 
-  // 5: Saturn — VIVID LIME/YELLOW-GREEN — sunglasses, bold ring
+  // 5: Saturn — LIGHT BROWN — sunglasses, blue rings
   () => `
     <defs><radialGradient id="s5g" cx="38%" cy="32%" r="60%">
-      <stop offset="0%" stop-color="#f7ffe0"/>
-      <stop offset="40%" stop-color="#84cc16"/>
-      <stop offset="100%" stop-color="#1a2e05"/>
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="40%" stop-color="#d4a86a"/>
+      <stop offset="100%" stop-color="#78350f"/>
     </radialGradient></defs>
-    <ellipse cx="20" cy="21.5" rx="20" ry="6" fill="none" stroke="#bef264" stroke-width="4.5" opacity="0.75"/>
-    <ellipse cx="20" cy="21.5" rx="16" ry="4.5" fill="none" stroke="#d9f99d" stroke-width="2.2" opacity="0.55"/>
+    <ellipse cx="20" cy="21.5" rx="20" ry="6" fill="none" stroke="#60a5fa" stroke-width="4.5" opacity="0.75"/>
+    <ellipse cx="20" cy="21.5" rx="16" ry="4.5" fill="none" stroke="#93c5fd" stroke-width="2.2" opacity="0.55"/>
     <circle cx="20" cy="19.5" r="14" fill="url(#s5g)" filter="url(#glow5)"/>
-    <defs><filter id="glow5"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#84cc16" flood-opacity="0.95"/></filter></defs>
-    <circle cx="20" cy="19.5" r="14" fill="none" stroke="#d9f99d" stroke-width="1.2" opacity="0.75"/>
+    <defs><filter id="glow5"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#d4a86a" flood-opacity="0.85"/></filter></defs>
+    <circle cx="20" cy="19.5" r="14" fill="none" stroke="#fcd34d" stroke-width="1.2" opacity="0.6"/>
     <clipPath id="s5c"><circle cx="20" cy="19.5" r="14"/></clipPath>
     <g clip-path="url(#s5c)">
-      <rect x="6" y="15" width="28" height="3.5" fill="#3f6212" opacity="0.5"/>
-      <rect x="6" y="22" width="28" height="3" fill="#365314" opacity="0.45"/>
+      <rect x="6" y="15" width="28" height="3.5" fill="#92400e" opacity="0.4"/>
+      <rect x="6" y="22" width="28" height="3" fill="#92400e" opacity="0.35"/>
     </g>
     <rect x="10" y="14.5" width="8.5" height="6" rx="3" fill="#0f172a"/>
     <rect x="21.5" y="14.5" width="8.5" height="6" rx="3" fill="#0f172a"/>
@@ -1033,9 +1033,9 @@ const PLANET_SVG = [
     <ellipse cx="25.5" cy="16.5" rx="2.8" ry="1.4" fill="white" opacity="0.2"/>
     <path d="M9 17 Q7.5 17.5 8 16.5" stroke="#334155" stroke-width="1.2" fill="none"/>
     <path d="M31 17 Q32.5 17.5 32 16.5" stroke="#334155" stroke-width="1.2" fill="none"/>
-    <path d="M13.5 26 Q18 30 23.5 27" stroke="#1a2e05" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <path d="M4 23 Q8 29.5 20 28 Q32 26.5 36 21" fill="none" stroke="#bef264" stroke-width="3.5" opacity="0.6"/>
-    <path d="M6 23.5 Q10 28.5 20 27.5 Q30 26.5 34 22.5" fill="none" stroke="#d9f99d" stroke-width="1.8" opacity="0.45"/>
+    <path d="M13.5 26 Q18 30 23.5 27" stroke="#78350f" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M4 23 Q8 29.5 20 28 Q32 26.5 36 21" fill="none" stroke="#3b82f6" stroke-width="3.5" opacity="0.6"/>
+    <path d="M6 23.5 Q10 28.5 20 27.5 Q30 26.5 34 22.5" fill="none" stroke="#93c5fd" stroke-width="1.8" opacity="0.45"/>
     <ellipse cx="13" cy="11.5" rx="4" ry="2.5" fill="white" opacity="0.3" transform="rotate(-30,13,11.5)"/>`,
 
   // 6: Uranus — ICY AQUAMARINE — tilted rings, dizzy/confused face
