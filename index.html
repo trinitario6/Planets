@@ -1458,9 +1458,8 @@ async function handleSwap(r1, c1, r2, c2) {
       showPopup('💥 QUANTUM EXPLOSION!');
       soundQuantumExplosion();
     } else if (special.special === SPECIAL_BLACK_HOLE) {
-      // Blast 3×3 centred on the Black Hole's OWN position (where it was placed)
-      // Using specialPos avoids edge clipping when swapping toward the board edge
-      const br = specialPos.r, bc = specialPos.c;
+      // Blast 3×3 centred on where the Black Hole lands (targetPos after swap)
+      const br = targetPos.r, bc = targetPos.c;
       for (let dr = -1; dr <= 1; dr++)
         for (let dc = -1; dc <= 1; dc++) {
           const nr = br+dr, nc = bc+dc;
@@ -1674,7 +1673,7 @@ async function resolveMatches(matches, specials) {
       if (!gem?.special) return;
 
       if (gem.special === SPECIAL_BLACK_HOLE) {
-        // Blast 3×3 area
+        // Blast 3×3 centred on the Black Hole's actual position
         for (let dr = -1; dr <= 1; dr++)
           for (let dc = -1; dc <= 1; dc++) {
             const nr = r+dr, nc = c+dc;
