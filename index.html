@@ -1461,10 +1461,11 @@ async function handleSwap(r1, c1, r2, c2) {
     // ── Special + Special combos ──────────────────────────────────────────────
     if (gemA.special && gemB.special) {
       const types = new Set([gemA.special, gemB.special]);
+      const isQQ = gemA.special === SPECIAL_QUANTUM_EXPLOSION && gemB.special === SPECIAL_QUANTUM_EXPLOSION;
       const isQP = types.has(SPECIAL_QUANTUM_EXPLOSION) && types.has(SPECIAL_PULSAR);
       const isQB = types.has(SPECIAL_QUANTUM_EXPLOSION) && types.has(SPECIAL_BLACK_HOLE);
 
-      if (isQP) {
+      if (isQQ || isQP) {
         // Quantum + Pulsar = ENTIRE BOARD CLEARED
         for (let r = 0; r < ROWS; r++)
           for (let c = 0; c < COLS; c++)
