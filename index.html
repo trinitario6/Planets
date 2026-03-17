@@ -1270,7 +1270,6 @@ function showHint() {
   const boardEl = document.getElementById('board');
   if (!boardEl) return;
 
-  // Try every possible swap, find first valid one
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const swaps = [];
@@ -1278,29 +1277,32 @@ function showHint() {
       if (r + 1 < ROWS) swaps.push([r, c, r+1, c]);
 
       for (const [r1,c1,r2,c2] of swaps) {
-        // Do swap
         const t = board[r1][c1]; board[r1][c1] = board[r2][c2]; board[r2][c2] = t;
         const { matched } = findMatches();
-        // Undo swap
         const t2 = board[r1][c1]; board[r1][c1] = board[r2][c2]; board[r2][c2] = t2;
 
         if (matched.size > 0) {
-          // Highlight the matched cells (the planets that will form the 3-in-a-row)
-          // Also add the swapped gem that moved into position
-          const toHighlight = new Set(matched);
+          // Highlight the gem that needs to MOVE — whichever of the two swap
+          // positions is in the matched set is the one staying put, so highlight
+          // the OTHER one (the gem being moved into position to complete the match).
+          // If both are in the match (e.g. special swap), highlight [r1,c1].
+          const key1 = r1+','+c1, key2 = r2+','+c2;
+          let hintR = r1, hintC = c1;
+          if (matched.has(key2) && !matched.has(key1)) {
+            // key2 is in the match — so key1 is the one moving in
+            hintR = r1; hintC = c1;
+          } else if (matched.has(key1) && !matched.has(key2)) {
+            // key1 is in the match — so key2 is the one moving in
+            hintR = r2; hintC = c2;
+          }
+          // Also highlight specials — if either swap cell is a special, prefer it
+          if (board[r1][c1]?.special) { hintR = r1; hintC = c1; }
+          else if (board[r2][c2]?.special) { hintR = r2; hintC = c2; }
 
-          matched.forEach(key => {
-            const [mr, mc] = key.split(',').map(Number);
-            const idx = mr * COLS + mc;
-            boardEl.children[idx]?.classList.add('hint');
-            _hintCell = idx; // track last for cleanup
-          });
-
-          // Store all highlighted indices for clearHint
-          _hintCells = [...toHighlight].map(k => {
-            const [hr, hc] = k.split(',').map(Number);
-            return hr * COLS + hc;
-          });
+          const idx = hintR * COLS + hintC;
+          boardEl.children[idx]?.classList.add('hint');
+          _hintCell = idx;
+          _hintCells = [idx];
           return;
         }
       }
