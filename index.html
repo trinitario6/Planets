@@ -1458,13 +1458,12 @@ async function handleSwap(r1, c1, r2, c2) {
       showPopup('💥 QUANTUM EXPLOSION!');
       soundQuantumExplosion();
     } else if (special.special === SPECIAL_BLACK_HOLE) {
-      // Blast 3×3 centred on where the Black Hole lands (targetPos after swap)
-      const br = targetPos.r, bc = targetPos.c;
+      // Blast a guaranteed full 3×3 — clamp centre so it never clips the board edge
+      const br = Math.max(1, Math.min(ROWS - 2, targetPos.r));
+      const bc = Math.max(1, Math.min(COLS - 2, targetPos.c));
       for (let dr = -1; dr <= 1; dr++)
-        for (let dc = -1; dc <= 1; dc++) {
-          const nr = br+dr, nc = bc+dc;
-          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) blastCells.add(nr+','+nc);
-        }
+        for (let dc = -1; dc <= 1; dc++)
+          blastCells.add((br+dr) + ',' + (bc+dc));
       showPopup('🌑 BLACK HOLE!');
       soundBlackHole();
     } else if (special.special === SPECIAL_PULSAR) {
@@ -1673,12 +1672,12 @@ async function resolveMatches(matches, specials) {
       if (!gem?.special) return;
 
       if (gem.special === SPECIAL_BLACK_HOLE) {
-        // Blast 3×3 centred on the Black Hole's actual position
+        // Blast guaranteed full 3×3 — clamp centre away from edges
+        const br = Math.max(1, Math.min(ROWS - 2, r));
+        const bc = Math.max(1, Math.min(COLS - 2, c));
         for (let dr = -1; dr <= 1; dr++)
-          for (let dc = -1; dc <= 1; dc++) {
-            const nr = r+dr, nc = c+dc;
-            if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) extraCells.add(nr+','+nc);
-          }
+          for (let dc = -1; dc <= 1; dc++)
+            extraCells.add((br+dr) + ',' + (bc+dc));
         showPopup('🌑 BLACK HOLE!');
         soundBlackHole();
       } else if (gem.special === SPECIAL_PULSAR) {
