@@ -819,6 +819,7 @@ let board = [];
 let score = 0, best = 0, level = 1, movesLeft = 0, gameMode = 'adult';
 let selectedCell = null;
 let animating = false;
+let sectorCleared = false;
 let _popToggle = 0;
 
 // ═══ BOARD INIT ═══════════════════════════════════════════════════════════════
@@ -1432,7 +1433,7 @@ function clearSelection() {
 
 // ═══ SWAP ════════════════════════════════════════════════════════════════════
 async function handleSwap(r1, c1, r2, c2) {
-  if (animating) return;
+  if (animating || sectorCleared) return;
   if (!board[r1]?.[c1] || !board[r2]?.[c2]) return;
   animating = true;
   soundSwap();
@@ -1559,6 +1560,7 @@ async function handleSwap(r1, c1, r2, c2) {
 
     checkGameState();
     animating = false;
+    if (sectorCleared) { setTimeout(() => triggerLevelComplete(), 300); return; }
     resetHintTimer();
     return;
   }
@@ -1588,6 +1590,7 @@ async function handleSwap(r1, c1, r2, c2) {
   await resolveMatches(matches, specials);
   checkGameState();
   animating = false;
+  if (sectorCleared) { setTimeout(() => triggerLevelComplete(), 300); return; }
   resetHintTimer();
 }
 
@@ -1892,7 +1895,10 @@ async function fillGapsAnimated() {
 
 // ═══ GAME STATE ═══════════════════════════════════════════════════════════════
 function checkGameState() {
-  if (score >= targetForLevel(level)) { setTimeout(() => triggerLevelComplete(), 300); return; }
+  if (score >= targetForLevel(level)) {
+    sectorCleared = true; // block new moves immediately
+    return;
+  }
   if (movesLeft <= 0) { setTimeout(() => triggerGameOver(), 300); return; }
   if (!hasValidMove()) {
     showPopup('🔀 Gravity shift!');
@@ -1958,6 +1964,7 @@ function triggerGameOver() {
 function nextLevel() {
   level++;
   movesLeft = movesForLevel(level);
+  sectorCleared = false;
   document.getElementById('level-complete').classList.remove('show');
   initBoard();
   // Clear any matches that exist on the starting board before player moves
@@ -1974,7 +1981,7 @@ function nextLevel() {
 
 function startGame(mode) {
   gameMode = mode;
-  score = 0; level = 1;
+  score = 0; level = 1; sectorCleared = false;
   best = parseInt(localStorage.getItem('planet_crush_best_' + mode) || '0');
   movesLeft = movesForLevel(1);
   document.getElementById('app').classList.remove('hidden');
