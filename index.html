@@ -714,26 +714,81 @@ function sweep(startFreq, endFreq, dur, vol, type, startTime=0) {
   } catch(e) {}
 }
 
+// ⭐ Pulsar — cross wipe of row + column: powerful energy beam firing in two directions
+// Character: sharp laser charge, then two simultaneous beam sweeps outward, deep resonant hit
 function soundPulsar() {
-  // Pulse 1
-  sweep(2000, 200, 0.2,  0.7,  'sawtooth', 0);
-  noise(0.05, 0.6, 3500, 0,    'highpass');
-  boom(180,   60,  0.12, 0.5,  0.02);
-  // Pulse 2
-  sweep(2200, 180, 0.2,  0.65, 'sawtooth', 0.18);
-  noise(0.05, 0.55,3500, 0.18, 'highpass');
-  boom(200,   55,  0.12, 0.55, 0.20);
+  // Charge-up whine before firing
+  sweep(300, 2400, 0.15, 0.6, 'sine', 0);
+  noise(0.08, 0.5, 2000, 0, 'highpass');
+  // Firing impact
+  boom(500, 35, 0.55, 0.95, 0.15);
+  boom(250, 20, 0.65, 0.85, 0.18);
+  noise(0.04, 1.0, 12000, 0.15, 'highpass');
+  noise(0.3,  0.75, 600,  0.16, 'lowpass');
+  // Beam sweeps — two descending tones firing simultaneously (horizontal + vertical)
+  sweep(2200, 120, 0.5, 0.7, 'sawtooth', 0.18);
+  sweep(1800, 100, 0.45, 0.65, 'sawtooth', 0.20);
+  // Resonant power chord rising
+  [220, 330, 440, 554, 659, 880].forEach((f, i) =>
+    tone(f, 0.45, 0.4, 'sawtooth', 0.22 + i * 0.06));
+  // Tail shimmer
+  noise(0.4, 0.3, 4000, 0.55, 'highpass');
+  tone(1568, 0.5, 0.2, 'sine', 0.6);
+  tone(2093, 0.4, 0.15, 'sine', 0.72);
 }
 
-function soundSpecial() {
-  boom(450, 40, 0.45, 0.9, 0);
-  noise(0.07, 0.85, 4000, 0,    'highpass');
-  noise(0.28, 0.65, 500,  0,    'lowpass');
-  tone(1200, 0.1,  0.55, 'sawtooth', 0.05);
-  tone(600,  0.18, 0.5,  'sawtooth', 0.09);
-  tone(300,  0.28, 0.45, 'square',   0.13);
-  noise(0.35, 0.45, 2200, 0.08, 'bandpass');
+// 🌑 Black Hole — 3×3 implosion: gravity collapse pulling everything inward
+// Character: rising suck tone (reverse of explosion), then massive implosion crunch
+function soundBlackHole() {
+  // Gravity pull — rising sweep as matter accelerates inward
+  sweep(60, 800, 0.35, 0.7, 'sine', 0);
+  sweep(80, 1200, 0.3, 0.6, 'sine', 0.03);
+  noise(0.2, 0.6, 800, 0, 'bandpass');
+  // Implosion peak — massive crunch at the centre
+  boom(900, 25, 0.5, 1.0, 0.32);
+  boom(450, 18, 0.6, 0.9, 0.35);
+  boom(200, 12, 0.75, 0.8, 0.38);
+  noise(0.03, 1.0, 16000, 0.32, 'highpass');
+  noise(0.25, 0.85, 1200, 0.33, 'lowpass');
+  noise(0.6,  0.65, 150,  0.36, 'lowpass');
+  // Dark resonant aftermath — low ominous tones
+  tone(55,  0.8, 0.5, 'sine', 0.38);
+  tone(110, 0.7, 0.4, 'sine', 0.40);
+  [165, 220, 277, 330].forEach((f, i) =>
+    tone(f, 0.5, 0.35, 'square', 0.42 + i * 0.07));
+  // High debris scatter
+  noise(0.35, 0.3, 5000, 0.5, 'highpass');
+  tone(1320, 0.4, 0.18, 'square', 0.55);
 }
+
+// 💥 Quantum Explosion — all planets of one type vanish across the board
+// Character: wide energy discharge that fans outward, glittery scatter as planets pop everywhere
+function soundQuantumExplosion() {
+  // Opening energy surge — builds fast
+  sweep(200, 3000, 0.2, 0.65, 'sine', 0);
+  noise(0.06, 0.8, 1500, 0, 'bandpass');
+  // Central detonation
+  boom(600, 30, 0.6, 1.0, 0.18);
+  boom(300, 22, 0.7, 0.9, 0.21);
+  noise(0.03, 1.0, 18000, 0.18, 'highpass');
+  noise(0.2,  0.8, 900,   0.19, 'lowpass');
+  noise(0.5,  0.6, 200,   0.22, 'lowpass');
+  // Outward fan — arpeggio firing in rapid sequence like planets popping
+  [196, 247, 294, 370, 440, 554, 659, 784, 988, 1175].forEach((f, i) =>
+    tone(f, 0.38, 0.42, 'sawtooth', 0.22 + i * 0.055));
+  // Glittery high scatter — dozens of planets disappearing
+  [1568, 1760, 2093, 2349, 2637].forEach((f, i) => {
+    tone(f, 0.25, 0.22, 'sine', 0.55 + i * 0.04);
+    noise(0.12, 0.18, f * 0.8, 0.56 + i * 0.04, 'bandpass');
+  });
+  // Grand shimmer tail
+  noise(0.5, 0.28, 4500, 0.75, 'highpass');
+  tone(1760, 0.6, 0.2, 'sine', 0.82);
+  tone(2349, 0.5, 0.15, 'sine', 0.95);
+}
+
+// Generic fallback (no longer called but kept for safety)
+function soundSpecial() { soundBlackHole(); }
 
 document.getElementById('mute-btn').addEventListener('click', () => {
   muted = !muted;
@@ -1390,7 +1445,7 @@ async function handleSwap(r1, c1, r2, c2) {
       // Remove the special from its NEW position after the swap
       blastCells.add(targetPos.r + ',' + targetPos.c);
       showPopup('💥 QUANTUM EXPLOSION!');
-      soundSpecial();
+      soundQuantumExplosion();
     } else if (special.special === SPECIAL_BLACK_HOLE) {
       // Blast 3×3 area centred on where the Black Hole LANDS after the swap
       const br = targetPos.r, bc = targetPos.c;
@@ -1400,7 +1455,7 @@ async function handleSwap(r1, c1, r2, c2) {
           if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) blastCells.add(nr+','+nc);
         }
       showPopup('🌑 BLACK HOLE!');
-      soundSpecial();
+      soundBlackHole();
     } else if (special.special === SPECIAL_PULSAR) {
       // Wipe entire row + column through where the Pulsar LANDS after the swap
       const pr = targetPos.r, pc = targetPos.c;
@@ -1614,7 +1669,7 @@ async function resolveMatches(matches, specials) {
             if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) extraCells.add(nr+','+nc);
           }
         showPopup('🌑 BLACK HOLE!');
-        soundSpecial();
+        soundBlackHole();
       } else if (gem.special === SPECIAL_PULSAR) {
         // Wipe entire row + entire column
         for (let cc = 0; cc < COLS; cc++) extraCells.add(r + ',' + cc);
@@ -1632,7 +1687,7 @@ async function resolveMatches(matches, specials) {
           for (let cc = 0; cc < COLS; cc++)
             if (board[rr][cc] && !board[rr][cc].special && board[rr][cc].type === targetType) extraCells.add(rr+','+cc);
         showPopup('💥 QUANTUM EXPLOSION!');
-        soundSpecial();
+        soundQuantumExplosion();
       }
     });
     extraCells.forEach(k => matches.add(k));
