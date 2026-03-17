@@ -862,8 +862,8 @@ function initBoard() {
         allCells.push([r, c]);
     allCells.sort(() => Math.random() - 0.5);
     [
-      SPECIAL_BLACK_HOLE, SPECIAL_BLACK_HOLE, SPECIAL_BLACK_HOLE,
-      SPECIAL_PULSAR, SPECIAL_PULSAR,
+      SPECIAL_BLACK_HOLE,
+      SPECIAL_PULSAR,
       SPECIAL_QUANTUM_EXPLOSION,
     ].forEach((sp, i) => {
       const [r, c] = allCells[i];
