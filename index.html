@@ -212,7 +212,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:var(--bg); font
 
 /* ── Moves display ── */
 #moves-wrap { width:100%; display:flex; align-items:center; justify-content:center; gap:6px; }
-#moves-label { font-size:9px; color:#4a6a9a; letter-spacing:2px; text-transform:uppercase; }
+#moves-label { font-size:11px; color:#4a6a9a; letter-spacing:1px; }
 #moves-count { font-size:22px; font-weight:800; color:#7eb8ff; min-width:26px; text-align:center; }
 
 /* ── Big popup ── */
@@ -1590,7 +1590,7 @@ async function resolveMatches(matches, specials) {
       if (t === 0) showPopup('✨ Sebtacular! ✨');
       else if (t === 1) showPopup('💫 Lawsome! 💫');
       else if (t === 2) showPopup('🌟 Stellar! 🌟');
-      else              showPopup('🪐 Out of this World! 🪐');
+      else              showPopup('⭐ Out of this World! ⭐');
     }
     else if (cascade === 3) showPopup('💥 Siuperb! 💥');
     else if (cascade >= 4) showPopup('🚀 ORBITAL CRUSH! 🚀');
@@ -1830,9 +1830,17 @@ function nextLevel() {
   level++;
   movesLeft = movesForLevel(level);
   document.getElementById('level-complete').classList.remove('show');
-  initBoard(); renderBoard(); updateScore(); updateMoves();
-  showPopup('🌌 Sector ' + level + '!');
-  resetHintTimer();
+  initBoard();
+  // Clear any matches that exist on the starting board before player moves
+  const { matched, specials } = findMatches();
+  if (matched.size > 0) {
+    renderBoard(); updateScore(); updateMoves();
+    resolveMatches(matched, specials).then(() => { checkGameState(); resetHintTimer(); });
+  } else {
+    renderBoard(); updateScore(); updateMoves();
+    showPopup('🚀 Sector ' + level + '!');
+    resetHintTimer();
+  }
 }
 
 function startGame(mode) {
@@ -1844,8 +1852,16 @@ function startGame(mode) {
   document.getElementById('mode-screen').classList.add('hidden');
   document.getElementById('level-complete').classList.remove('show');
   document.getElementById('game-over').classList.remove('show');
-  initBoard(); renderBoard(); updateScore(); updateMoves();
-  resetHintTimer();
+  initBoard();
+  // Clear any matches that exist on the starting board before player moves
+  const { matched, specials } = findMatches();
+  if (matched.size > 0) {
+    renderBoard(); updateScore(); updateMoves();
+    resolveMatches(matched, specials).then(() => { resetHintTimer(); });
+  } else {
+    renderBoard(); updateScore(); updateMoves();
+    resetHintTimer();
+  }
 }
 
 // ═══ POPUPS ═══════════════════════════════════════════════════════════════════
