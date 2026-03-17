@@ -1843,7 +1843,18 @@ function checkGameState() {
   if (movesLeft <= 0) { setTimeout(() => triggerGameOver(), 300); return; }
   if (!hasValidMove()) {
     showPopup('🔀 Gravity shift!');
-    setTimeout(() => { shuffleBoard(); renderBoard(); }, 650);
+    setTimeout(async () => {
+      shuffleBoard();
+      renderBoard();
+      await wait(300);
+      const { matched, specials } = findMatches();
+      if (matched.size > 0) {
+        await resolveMatches(matched, specials);
+        checkGameState();
+      }
+      resetHintTimer();
+    }, 650);
+    return;
   }
 }
 
