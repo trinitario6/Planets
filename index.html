@@ -695,6 +695,18 @@ function soundLevelUp() {
   tone(2093, 0.6, 0.22, 'sine', 0.9);
 }
 
+// Game over — Probe signal lost: radio beeps fading into static then silence
+function soundGameOver() {
+  [0, 0.35, 0.65, 0.9].forEach((t, i) => {
+    const vol = 0.6 * Math.pow(0.55, i);
+    tone(1200, 0.08, vol,       'sine',   t);
+    tone(1200, 0.08, vol * 0.4, 'square', t + 0.01);
+  });
+  noise(0.4, 0.25, 2000, 1.0, 'bandpass');
+  noise(0.6, 0.15, 1000, 1.1, 'bandpass');
+  noise(0.8, 0.08,  500, 1.2, 'lowpass');
+}
+
 function sweep(startFreq, endFreq, dur, vol, type, startTime=0) {
   if (muted) return;
   try {
@@ -1873,6 +1885,7 @@ function triggerLevelComplete() {
 }
 
 function triggerGameOver() {
+  soundGameOver();
   document.getElementById('go-score').textContent = score;
   document.getElementById('go-best').textContent = best;
   document.getElementById('game-over').classList.add('show');
