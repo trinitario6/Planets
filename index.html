@@ -829,14 +829,23 @@ function randomPlanet() {
   return { type: Math.floor(Math.random() * PLANET_TYPES), special: null };
 }
 
-// Used when filling gaps during play — weighted chance of spawning a special
+// Used when filling gaps during play — special chance scales with level
+// Early levels: modest rates. Later levels: noticeably higher but still challenging.
+// Level 1:  BH 5%,  P 2%,   Q 0.5%  → total ~7.5%
+// Level 8:  BH 10%, P 5%,   Q 1.5%  → total ~16.5%
+// Level 15: BH 16%, P 8.5%, Q 3%    → total ~27.5%
 function randomGem() {
   const type = Math.floor(Math.random() * PLANET_TYPES);
   const roll = Math.random();
+  // t = 0 at level 1, t = 1 at level 15
+  const t = Math.min((level - 1) / 14, 1);
+  const qChance  = 0.005 + t * 0.025;          // 0.5% → 3%
+  const pChance  = 0.020 + t * 0.065;          // 2%   → 8.5%
+  const bhChance = 0.050 + t * 0.110;          // 5%   → 16%
   let special = null;
-  if      (roll < 0.015) special = SPECIAL_QUANTUM_EXPLOSION;
-  else if (roll < 0.055) special = SPECIAL_PULSAR;
-  else if (roll < 0.135) special = SPECIAL_BLACK_HOLE;
+  if      (roll < qChance)               special = SPECIAL_QUANTUM_EXPLOSION;
+  else if (roll < qChance + pChance)     special = SPECIAL_PULSAR;
+  else if (roll < qChance + pChance + bhChance) special = SPECIAL_BLACK_HOLE;
   return { type, special };
 }
 
