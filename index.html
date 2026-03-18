@@ -814,7 +814,7 @@ const SPECIAL_QUANTUM_EXPLOSION = 'quantum-explosion';  // match L/T shape → r
 
 // Points required fresh each sector (not cumulative)
 const LEVEL_TARGETS = [850, 1400, 1975, 2800, 4225, 5050, 6200, 7300, 8450, 9550, 10700, 11800, 12950, 14050, 15200];
-const BASE_MOVES = { kid: 30, adult: 20 };
+const BASE_MOVES = { kid: 30, adult: 30 };
 
 let board = [];
 let score = 0, best = 0, level = 1, movesLeft = 0, gameMode = 'adult';
@@ -882,8 +882,7 @@ function initBoard() {
 }
 
 function movesForLevel(lv) {
-  const base = gameMode === 'kid' ? BASE_MOVES.kid : BASE_MOVES.adult;
-  return Math.max(base - Math.floor((lv - 1) * 1.5), 8);
+  return gameMode === 'kid' ? BASE_MOVES.kid : BASE_MOVES.adult;
 }
 function targetForLevel(lv) {
   return LEVEL_TARGETS[Math.min(lv-1, LEVEL_TARGETS.length-1)] || LEVEL_TARGETS[LEVEL_TARGETS.length-1] + (lv-LEVEL_TARGETS.length)*10000;
@@ -1472,43 +1471,69 @@ async function handleSwap(r1, c1, r2, c2) {
 
     // ── Special + Special combos ──────────────────────────────────────────────
     if (gemA.special && gemB.special) {
-      const types = new Set([gemA.special, gemB.special]);
+      const isPP = gemA.special === SPECIAL_PULSAR            && gemB.special === SPECIAL_PULSAR;
+      const isBB = gemA.special === SPECIAL_BLACK_HOLE        && gemB.special === SPECIAL_BLACK_HOLE;
+      const isPB = new Set([gemA.special, gemB.special]).size === 2
+                   && [gemA.special, gemB.special].includes(SPECIAL_PULSAR)
+                   && [gemA.special, gemB.special].includes(SPECIAL_BLACK_HOLE);
+      const isQB = [gemA.special, gemB.special].includes(SPECIAL_QUANTUM_EXPLOSION)
+                   && [gemA.special, gemB.special].includes(SPECIAL_BLACK_HOLE);
+      const isQP = [gemA.special, gemB.special].includes(SPECIAL_QUANTUM_EXPLOSION)
+                   && [gemA.special, gemB.special].includes(SPECIAL_PULSAR);
       const isQQ = gemA.special === SPECIAL_QUANTUM_EXPLOSION && gemB.special === SPECIAL_QUANTUM_EXPLOSION;
-      const isQP = types.has(SPECIAL_QUANTUM_EXPLOSION) && types.has(SPECIAL_PULSAR);
-      const isQB = types.has(SPECIAL_QUANTUM_EXPLOSION) && types.has(SPECIAL_BLACK_HOLE);
 
-      if (isQQ || isQP) {
-        // Quantum + Pulsar = ENTIRE BOARD CLEARED
-        for (let r = 0; r < ROWS; r++)
-          for (let c = 0; c < COLS; c++)
-            blastCells.add(r + ',' + c);
-        showPopup('💥 UNIVERSE RESET!');
-        soundQuantumExplosion();
-        soundLevelUp();
-      } else if (isQB) {
-        // Quantum + Black Hole = clear all of both planet types + 3×3
-        const types2 = new Set([gemA.type, gemB.type]);
-        for (let r = 0; r < ROWS; r++)
-          for (let c = 0; c < COLS; c++)
-            if (board[r][c] && !board[r][c].special && types2.has(board[r][c].type)) blastCells.add(r + ',' + c);
+      if (isPP) {
+        // Pulsar + Pulsar: Binary Blast — row+column through both positions
         for (const pos of [{ r: r1, c: c1 }, { r: r2, c: c2 }]) {
-          for (let dr = -1; dr <= 1; dr++)
-            for (let dc = -1; dc <= 1; dc++) {
-              const nr = pos.r+dr, nc = pos.c+dc;
-              if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) blastCells.add(nr+','+nc);
-            }
-        }
-        showPopup('🌑 QUANTUM COLLAPSE!');
-        soundBlackHole();
-        soundQuantumExplosion();
-      } else {
-        // All other special+special = Pulsar through both positions
-        for (let pos of [{ r: r1, c: c1 }, { r: r2, c: c2 }]) {
           for (let cc = 0; cc < COLS; cc++) blastCells.add(pos.r + ',' + cc);
           for (let rr = 0; rr < ROWS; rr++) blastCells.add(rr + ',' + pos.c);
         }
+        showPopup('⭐ BINARY BLAST!');
+        soundPulsar();
+
+      } else if (isBB) {
+        // Black Hole + Black Hole: Super Massive — Pulsar effect through both positions
+        for (const pos of [{ r: r1, c: c1 }, { r: r2, c: c2 }]) {
+          for (let cc = 0; cc < COLS; cc++) blastCells.add(pos.r + ',' + cc);
+          for (let rr = 0; rr < ROWS; rr++) blastCells.add(rr + ',' + pos.c);
+        }
+        showPopup('🌑 SUPER MASSIVE!');
+        soundBlackHole();
+
+      } else if (isPB) {
+        // Pulsar + Black Hole — 3×3 around BH position + full row+column through Pulsar position
+        const bhPos  = gemA.special === SPECIAL_BLACK_HOLE ? { r: r1, c: c1 } : { r: r2, c: c2 };
+        const pulPos = gemA.special === SPECIAL_PULSAR      ? { r: r1, c: c1 } : { r: r2, c: c2 };
+        for (let dr = -1; dr <= 1; dr++)
+          for (let dc = -1; dc <= 1; dc++) {
+            const nr = bhPos.r+dr, nc = bhPos.c+dc;
+            if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) blastCells.add(nr+','+nc);
+          }
+        for (let cc = 0; cc < COLS; cc++) blastCells.add(pulPos.r + ',' + cc);
+        for (let rr = 0; rr < ROWS; rr++) blastCells.add(rr + ',' + pulPos.c);
         showPopup('⭐ PULSAR BLAST!');
         soundPulsar();
+
+      } else if (isQB) {
+        // Quantum + Black Hole: Quantum Collapse — 5 rows nearest the BH cleared
+        const bhPos = gemA.special === SPECIAL_BLACK_HOLE ? { r: r1, c: c1 } : { r: r2, c: c2 };
+        const startRow = Math.max(0, bhPos.r - 2);
+        const endRow   = Math.min(ROWS - 1, startRow + 4);
+        for (let r = startRow; r <= endRow; r++)
+          for (let c = 0; c < COLS; c++)
+            blastCells.add(r + ',' + c);
+        showPopup('🌑 QUANTUM COLLAPSE!');
+        soundBlackHole();
+        soundQuantumExplosion();
+
+      } else if (isQP || isQQ) {
+        // Quantum + Pulsar or Quantum + Quantum: Big Bang — entire board
+        for (let r = 0; r < ROWS; r++)
+          for (let c = 0; c < COLS; c++)
+            blastCells.add(r + ',' + c);
+        showPopup('💥 BIG BANG!');
+        soundQuantumExplosion();
+        soundLevelUp();
       }
     } else if (special.special === SPECIAL_QUANTUM_EXPLOSION) {
       // Destroy all planets of the target's type on the board
